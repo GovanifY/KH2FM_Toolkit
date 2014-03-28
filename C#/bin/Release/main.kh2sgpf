@@ -1,0 +1,93 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.IO;
+using System.Diagnostics;
+
+namespace gtf2dds
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            try
+            {
+                Process p = Process.GetCurrentProcess();
+                string assemblyName = p.ProcessName + ".exe";
+
+                Console.Clear();
+                Console.WriteLine("GTF to DDS converter\nTom Evin 2010.10.12.");
+                if (args.Length < 1)
+                {
+                    Console.WriteLine("Only 8.8.8.8 compression supported.\nJust drag && drop a file or in command line: " + assemblyName + " filename.dds/gtf");
+                    Console.Read();
+                }
+                else
+                {
+                    FileStream ins = File.OpenRead(args[0]);
+                    byte[] b = new byte[4];
+                    byte[] a = new byte[2];
+                    int width = 0;
+                    int height = 0;
+                    ins.Read(b, 0, 4);
+                    if (b[0] == 0x02 && b[1] == 0x01 && b[3] == 0xff)
+                    {
+                        FileStream outs = File.OpenWrite(Path.GetFileNameWithoutExtension(args[0]) + ".dds");
+                        byte[] DDSHeader1 = new byte[12] { 0x44, 0x44, 0x53, 0x20, 0x7c, 0x00, 0x00, 0x00, 0x07, 0x10, 0x08, 0x00 };
+                        byte[] DDSHeader2 = new byte[108]{0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00,
+                        0x41, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00,
+                        0x00, 0xff, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x10, 0x00, 0x00,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+                        ins.Seek(0, SeekOrigin.End);
+                        int vege = (int)ins.Position;
+                        ins.Seek(32, SeekOrigin.Begin);
+                        ins.Read(a, 0, 2);
+                        Array.Reverse(a);
+                        width = BitConverter.ToInt16(a, 0);
+                        ins.Read(a, 0, 2);
+                        Array.Reverse(a);
+                        height = BitConverter.ToInt16(a, 0);
+                        ins.Seek(128, SeekOrigin.Begin);
+                        Console.WriteLine("Size: " + vege);
+                        Console.WriteLine("\nDimensions");
+                        Console.WriteLine("Width: " + width);
+                        Console.WriteLine("Height: " + height);
+
+                        outs.Write(DDSHeader1, 0, 12);
+                        b = BitConverter.GetBytes(height);
+                        outs.Write(b, 0, 4);
+                        b = BitConverter.GetBytes(width);
+                        outs.Write(b, 0, 4);
+                        outs.Write(DDSHeader2, 0, 108);
+
+                        for (int i = 0; i < (vege - 128)/4; i++)
+                        {
+                            ins.Read(b, 0, 4);
+                            Array.Reverse(b);
+                            outs.Write(b, 0, 4);
+                        }
+                        outs.Flush();
+                        outs.Close();
+                    }
+                    else { Console.WriteLine("This is not a .gtf file or corrupt or just not supported by this program!"); Console.Read(); }
+                    ins.Close();
+                }
+                //Console.Read();
+            }
+            catch (IndexOutOfRangeException exc)
+            {
+                Console.WriteLine(exc.Message);
+                Console.Read();
+            }
+            catch (FileLoadException exc)
+            {
+                Console.WriteLine(exc.Message);
+                Console.Read();
+            }
+        }
+    }
+}
