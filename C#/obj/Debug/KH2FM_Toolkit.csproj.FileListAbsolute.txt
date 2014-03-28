@@ -1,8 +1,0 @@
-H:\kh\tools\GovanifY\source\KH2FM_Toolkit\bin\Debug\KH2FM_Toolkit.exe.config
-H:\kh\tools\GovanifY\source\KH2FM_Toolkit\bin\Debug\KH2FM_Toolkit.exe
-H:\kh\tools\GovanifY\source\KH2FM_Toolkit\bin\Debug\KH2FM_Toolkit.pdb
-H:\kh\tools\GovanifY\source\KH2FM_Toolkit\obj\Debug\KH2FM_Toolkit.Properties.Resources.resources
-H:\kh\tools\GovanifY\source\KH2FM_Toolkit\obj\Debug\KH2FM_Toolkit.csproj.GenerateResource.Cache
-H:\kh\tools\GovanifY\source\KH2FM_Toolkit\obj\Debug\KH2FM_Toolkit.exe
-H:\kh\tools\GovanifY\source\KH2FM_Toolkit\obj\Debug\KH2FM_Toolkit.pdb
-H:\kh\tools\GovanifY\source\KH2FM_Toolkit\obj\Debug\KH2FM_Toolkit.csprojResolveAssemblyReference.cache
