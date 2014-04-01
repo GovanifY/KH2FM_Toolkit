@@ -399,6 +399,10 @@ namespace KH2FM_Toolkit
                         PatchManager.Patch patch;
                         if (patches.patches.TryGetValue(PatchManager.ToHash(name), out patch) && patch.IsinISO)
                         {
+#if extract
+                          FileStream midS = File.Open(name , FileMode.Create, FileAccess.Write);
+                          GovanifY.Utility.BinaryStream.Write(patch.Stream, 0, patch.Stream.Length);
+#endif
                             Console.WriteLine("\tPatching...");
                             file.RecordingDate = DateTime.UtcNow;
                             niso.AddFile(file, patch.Stream);
@@ -473,7 +477,13 @@ namespace KH2FM_Toolkit
                 Console.ResetColor();
 #else
                 Console.Write("\nPUBLIC RELEASE\n");
-#endif          
+#endif     
+#if extract
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("\nExtractor edition\n");
+                Console.ResetColor();
+#endif
+
                 Console.ForegroundColor = ConsoleColor.DarkMagenta;
                 Console.Write("\nProgrammed by {0}\nhttp://www.govanify.blogspot.fr\nhttp://www.govanify.x10host.com", program.CompanyName);
                 Console.ForegroundColor = ConsoleColor.Gray;
@@ -504,6 +514,11 @@ namespace KH2FM_Toolkit
                 Console.ResetColor();
 #else
                 Console.Write("\nPUBLIC RELEASE\n");
+#endif
+#if extract
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("\nExtractor edition\n");
+                Console.ResetColor();
 #endif
                 Console.ForegroundColor = ConsoleColor.DarkMagenta;
                 Console.Write("\nProgrammed by {0}\nhttp://www.govanify.blogspot.fr\nhttp://www.govanify.x10host.com", program.CompanyName);

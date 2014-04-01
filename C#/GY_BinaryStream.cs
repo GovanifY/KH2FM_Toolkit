@@ -1,4 +1,7 @@
 ﻿// Ver 1.3.0
+
+using System.IO;
+
 namespace GovanifY.Utility
 {
     public sealed class BinaryStream : System.IDisposable
@@ -295,7 +298,7 @@ namespace GovanifY.Utility
         public void Flush() { if (this._stream == null) { throw new System.ObjectDisposedException(this.GetType().FullName); } this._stream.Flush(); }
         /// <summary>Writes a string to this stream in the Encoding, and advances the current position of the stream in accordance with the encoding used and the specific characters being written to the stream.</summary>
         /// <param name="v">The value to write.</param>
-        /// <exception cref="System.IOException">An I/O error occurs.</exception>
+        /// <exception cref="IOException">An I/O error occurs.</exception>
         /// <exception cref="System.NotSupportedException">The stream does not support reading.</exception>
         /// <exception cref="System.ObjectDisposedException">The stream is closed.</exception>
         public void Write(char[] v)
@@ -312,7 +315,7 @@ namespace GovanifY.Utility
         /// <exception cref="System.ArgumentException">The buffer length minus <c>index</c> is less than <c>count</c>.</exception>
         /// <exception cref="System.ArgumentNullException"><c>buffer</c> is null.</exception>
         /// <exception cref="System.ArgumentOutOfRangeException"><c>index</c> or <c>count</c> is negative.</exception>
-        /// <exception cref="System.IOException">An I/O error occurs.</exception>
+        /// <exception cref="IOException">An I/O error occurs.</exception>
         /// <exception cref="System.NotSupportedException">The stream does not support reading.</exception>
         /// <exception cref="System.ObjectDisposedException">The stream is closed.</exception>
         public void Write(byte[] buffer, int index, int count)
