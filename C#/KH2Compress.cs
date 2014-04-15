@@ -1,15 +1,24 @@
 ﻿using System;
-
+using System.Diagnostics;
 
 namespace KHCompress
 {
     [Serializable]
     public class NotCompressableException : Exception
     {
-        public NotCompressableException() { }
-        public NotCompressableException(string message) : base(message) { }
-        public NotCompressableException(string message, Exception inner) : base(message, inner) { }
+        public NotCompressableException()
+        {
+        }
+
+        public NotCompressableException(string message) : base(message)
+        {
+        }
+
+        public NotCompressableException(string message, Exception inner) : base(message, inner)
+        {
+        }
     }
+
     public static class KH2Compressor
     {
         /// <summary>How far back to search for matches</summary>
@@ -23,8 +32,11 @@ namespace KHCompress
         /// <returns>Most uncommon byte</returns>
         private static byte findLeastByte(byte[] data)
         {
-            uint[] cnt = new uint[256];
-            foreach (var i in data) { ++cnt[i]; }
+            var cnt = new uint[256];
+            foreach (byte i in data)
+            {
+                ++cnt[i];
+            }
             uint fC = uint.MaxValue;
             byte f = 0x13;
             //flag cannot be NULL (compressed file can be buffered with NULLs at end)
@@ -32,9 +44,12 @@ namespace KHCompress
             {
                 if (cnt[i] < fC)
                 {
-                    f = (byte)i;
+                    f = (byte) i;
                     fC = cnt[i];
-                    if (fC == 0) { break; }
+                    if (fC == 0)
+                    {
+                        break;
+                    }
                 }
             }
             return f;
@@ -47,22 +62,23 @@ namespace KHCompress
             {
                 throw new NotCompressableException("Source too big");
             }
-            // 10 bytes is the absolute smallest that can be compressed. "000000000" -> "+++0LLLLF".
-            else if (input.Length < 10)
+                // 10 bytes is the absolute smallest that can be compressed. "000000000" -> "+++0LLLLF".
+            if (input.Length < 10)
             {
                 throw new NotCompressableException("Source too small");
             }
-            byte flag = findLeastByte(input);    // Get the least-used byte for a flag
-            int i = input.Length,                // Input position
-                o = i - 6;                       // Output position (-6 for the 5 bytes added at the end + 1 byte smaller then input minimum)
-            byte[] outbuf = new byte[o];         // Output buffer (since we can't predict how well the file will compress)
+            byte flag = findLeastByte(input); // Get the least-used byte for a flag
+            int i = input.Length,
+                // Input position
+                o = i - 6; // Output position (-6 for the 5 bytes added at the end + 1 byte smaller then input minimum)
+            var outbuf = new byte[o]; // Output buffer (since we can't predict how well the file will compress)
             while (--i >= 0 && --o >= 0)
             {
                 if (i > 2 && o >= 2)
                 {
                     /*Attempt compression*/
                     int buffEnd = input.Length <= i + bufferSize ? input.Length : i + bufferSize + 1;
-                    int mLen = 3;   //minimum = 4, so init this to 3
+                    int mLen = 3; //minimum = 4, so init this to 3
                     byte mPos = 0;
                     for (int j = i + 1; j < buffEnd; ++j)
                     {
@@ -72,18 +88,22 @@ namespace KHCompress
                             if (++cnt == maxMatch + 3)
                             {
                                 mLen = maxMatch + 3;
-                                mPos = (byte)(j - i);
-                                j = buffEnd;    // Break out of for loop
-                                break;          // Break out of while loop
+                                mPos = (byte) (j - i);
+                                j = buffEnd; // Break out of for loop
+                                break; // Break out of while loop
                             }
                         }
-                        if (cnt > mLen) { mLen = cnt; mPos = (byte)(j - i); }
+                        if (cnt > mLen)
+                        {
+                            mLen = cnt;
+                            mPos = (byte) (j - i);
+                        }
                     }
                     if (mLen > 3)
                     {
                         outbuf[o] = flag;
                         outbuf[--o] = mPos;
-                        outbuf[--o] = (byte)(mLen - 3);
+                        outbuf[--o] = (byte) (mLen - 3);
                         i -= (mLen - 1);
                         continue;
                     }
@@ -93,9 +113,9 @@ namespace KHCompress
                 {
                     if (--o < 0)
                     {
-                        break;  // There's not enough room to store the literal
+                        break; // There's not enough room to store the literal
                     }
-                    outbuf[o] = 0;  // Output 0 to mean the byte is literal, and not a flag
+                    outbuf[o] = 0; // Output 0 to mean the byte is literal, and not a flag
                 }
             }
             if (o < 0)
@@ -105,34 +125,44 @@ namespace KHCompress
 
             // get length of compressed data (-1 for minimum 1 byte smaller)
             i = input.Length - o - 1;
-            byte[] output = new byte[i];
+            var output = new byte[i];
             Array.Copy(outbuf, o, output, 0, i - 5);
-            output[i - 5] = (byte)(input.Length >> 24);
-            output[i - 4] = (byte)(input.Length >> 16);
-            output[i - 3] = (byte)(input.Length >> 8);
-            output[i - 2] = (byte)(input.Length);
+            output[i - 5] = (byte) (input.Length >> 24);
+            output[i - 4] = (byte) (input.Length >> 16);
+            output[i - 3] = (byte) (input.Length >> 8);
+            output[i - 2] = (byte) (input.Length);
             output[i - 1] = flag;
-            Console.WriteLine("  Compressed to {0:0%} of the original size!", (double)i / input.Length);
+            Console.WriteLine("  Compressed to {0:0%} of the original size!", (double) i/input.Length);
             return output;
         }
+
         public static byte[] decompress(byte[] input, uint uSize)
         {
-            if (input.LongLength > uint.MaxValue) { throw new ArgumentOutOfRangeException("data", "Array to large to handle"); }
-            uint inputOffset = (uint)input.LongLength;
+            if (input.LongLength > uint.MaxValue)
+            {
+                throw new ArgumentOutOfRangeException("data", "Array to large to handle");
+            }
+            var inputOffset = (uint) input.LongLength;
             // Can be buffered with NULLs at the end
-            while (input[--inputOffset] == 0) { }
+            while (input[--inputOffset] == 0)
+            {
+            }
             byte magic = input[inputOffset];
 #if DEBUG
-            uint outputOffset = BitConverter.ToUInt32(new byte[] { input[--inputOffset], input[--inputOffset], input[--inputOffset], input[--inputOffset] }, 0);
-            System.Diagnostics.Debug.WriteLineIf(outputOffset != uSize, "Got size " + uSize + "from IDX, but " + outputOffset + " internally");
+            uint outputOffset =
+                BitConverter.ToUInt32(
+                    new[] {input[--inputOffset], input[--inputOffset], input[--inputOffset], input[--inputOffset]}, 0);
+            Debug.WriteLineIf(outputOffset != uSize,
+                "Got size " + uSize + "from IDX, but " + outputOffset + " internally");
             outputOffset = uSize;
 #else
-            // KH2 internally skips the 4 "size" bytes and uses what the IDX says
+    // KH2 internally skips the 4 "size" bytes and uses what the IDX says
             inputOffset -= 4;
             uint outputOffset = uSize;
 #endif
-            byte[] output = new byte[outputOffset];
-            while (inputOffset > 0/* && outputOffset > 0*/) //I could check for outputOffset too, but if it goes below 0 the file is probably corrupt. Let the caller handle that.
+            var output = new byte[outputOffset];
+            while (inputOffset > 0 /* && outputOffset > 0*/)
+                //I could check for outputOffset too, but if it goes below 0 the file is probably corrupt. Let the caller handle that.
             {
                 byte c = input[--inputOffset], offset;
                 if (c == magic && (offset = input[--inputOffset]) != 0)
@@ -143,7 +173,10 @@ namespace KHCompress
                         output[--outputOffset] = output[offset + outputOffset];
                     }
                 }
-                else { output[--outputOffset] = c; }
+                else
+                {
+                    output[--outputOffset] = c;
+                }
             }
             return output;
         }

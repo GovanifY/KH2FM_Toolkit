@@ -2,15 +2,19 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
+using System.Text;
+using IDX_Tools;
 using KH2FM_Toolkit;
+using KH2FM_Toolkit.Properties;
 
 namespace HashList
 {
     public sealed class HashPairs
     {
+        public static Dictionary<UInt32, string> pairs;
         public static string version { get; private set; }
         public static string author { get; private set; }
-        public static Dictionary<UInt32, string> pairs;
 
         public static void loadHashPairs(string filename = "HashList.bin", bool forceReload = false,
             bool printInfo = false)
@@ -33,7 +37,8 @@ namespace HashList
             }
 
             #region EncryptionRessource
-            byte[] Hashlist = KH2FM_Toolkit.Properties.Resources.HashList;
+
+            byte[] Hashlist = Resources.HashList;
             PatchManager.GYXor(Hashlist);
             string Hashtemp = Path.GetTempFileName();
             File.WriteAllBytes(Hashtemp, Hashlist);
@@ -52,7 +57,7 @@ namespace HashList
             version = author = "";
             if (!File.Exists(filename)) // If it's not in the current directory, try the EXE's location
             {
-                filename = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\" +
+                filename = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\" +
                            filename;
                 if (File.Exists(filename))
                 {
@@ -72,12 +77,14 @@ namespace HashList
             }
             if (!File.Exists(filename))
             {
-#endregion EncryptionRessource
+                #endregion EncryptionRessource
+
                 #region Loadressource
+
                 using (
-                    StreamReader rd =
+                    var rd =
                         new StreamReader(File.Open(Hashtemp, FileMode.Open, FileAccess.Read, FileShare.Read),
-                            System.Text.Encoding.UTF8, false, 1024))
+                            Encoding.UTF8, false, 1024))
                 {
                     string line;
                     int index;
@@ -124,18 +131,19 @@ namespace HashList
                 }
             }
                 #endregion Loadressource
-            #region Loadexternal
+                #region Loadexternal
+
             else
             {
-                byte[] Hashlistencrypted = System.IO.File.ReadAllBytes(filename);
+                byte[] Hashlistencrypted = File.ReadAllBytes(filename);
                 PatchManager.GYXor(Hashlistencrypted);
                 string Hashtemp2;
                 Hashtemp2 = Path.GetTempFileName();
                 File.WriteAllBytes(Hashtemp2, Hashlistencrypted);
                 using (
-                    StreamReader rd =
+                    var rd =
                         new StreamReader(File.Open(Hashtemp2, FileMode.Open, FileAccess.Read, FileShare.Read),
-                            System.Text.Encoding.UTF8, false, 1024))
+                            Encoding.UTF8, false, 1024))
                 {
                     string line;
                     int index;
@@ -180,8 +188,11 @@ namespace HashList
                         }
                     }
                 }
-            #endregion Loadexternal
+
+                #endregion Loadexternal
+
                 #region PrintInfoexternal
+
                 if (printInfo)
                     if (File.Exists(Hashtemp2))
                     {
@@ -194,22 +205,31 @@ namespace HashList
                             Console.ResetColor();
                         }
                     }
+
                 #endregion PrintInfoexternal
             }
-
-         
         }
 
         public static string NameFromHash(uint hash)
         {
-            if (pairs == null) { loadHashPairs(); }
+            if (pairs == null)
+            {
+                loadHashPairs();
+            }
             string ret;
-            if (!HashPairs.pairs.TryGetValue(hash, out ret) || ret.Length < 3) { ret = String.Format("@noname/{0:X8}.bin", hash); }
+            if (!pairs.TryGetValue(hash, out ret) || ret.Length < 3)
+            {
+                ret = String.Format("@noname/{0:X8}.bin", hash);
+            }
             return ret;
         }
     }
+
     internal static class Extensions
     {
-        public static string FileName(this IDX_Tools.IDXFile.IDXEntry entry) { return HashPairs.NameFromHash(entry.Hash); }
+        public static string FileName(this IDXFile.IDXEntry entry)
+        {
+            return HashPairs.NameFromHash(entry.Hash);
+        }
     }
 }
