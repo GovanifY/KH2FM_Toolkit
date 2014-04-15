@@ -26,7 +26,7 @@ namespace KH2FM_Toolkit
 
         private static readonly PatchManager patches = new PatchManager();
         private static bool advanced;
-        public static DateTime builddate { get; set; }
+        private static DateTime builddate { get; set; }
 
         private static DateTime RetrieveLinkerTimestamp()
         {
@@ -68,19 +68,22 @@ namespace KH2FM_Toolkit
         {
             WriteWarning(format, arg);
             //Let the user see the error
-            Console.Write("Press enter to continue anyway... ");
+            Console.Write(@"Press enter to continue anyway... ");
             Console.ReadLine();
         }
 
+        /// <param name="idx">Left open.</param>
         /// <param name="img">Left open.</param>
-        private static void ExtractIDX(IDXFile idx, Stream img, bool recurse = false, string tfolder = "export/",
-            string name = "")
+        /// <param name="recurse">recursive</param>
+        /// <param name="tfolder">Complete name</param>
+        /// <param name="name">Complete name</param>
+        private static void ExtractIDX(IDX_Tools.IDXFile idx, Stream img, bool recurse = false, string tfolder = "export/", string name = "")
         {
-            using (var imgf = new IMGFile(img, leaveOpen: true))
+            using (IDX_Tools.IMGFile imgf = new IDX_Tools.IMGFile(img, leaveOpen: true))
             {
-                var idxs = new List<Tuple<IDXFile, string>>();
+                List<Tuple<IDX_Tools.IDXFile, string>> idxs = new List<Tuple<IDX_Tools.IDXFile, string>>();
                 uint i = 0, total = idx.Count;
-                foreach (IDXFile.IDXEntry entry in idx)
+                foreach (IDX_Tools.IDXFile.IDXEntry entry in idx)
                 {
                     string filename = entry.FileName();
                     if (recurse)
@@ -106,15 +109,21 @@ namespace KH2FM_Toolkit
                             case 0xeb89495d: //000bb.idx
                             case 0xf87401c0: //000dc.idx
                             case 0xff7a1379: //000he.idx
-                                idxs.Add(new Tuple<IDXFile, string>(new IDXFile(imgf.GetFileStream(entry)),
-                                    Path.GetFileNameWithoutExtension(filename).Substring(3)));
-                                Debug.WriteLine("  Added IDX to list");
+                                idxs.Add(new Tuple<IDX_Tools.IDXFile, string>(new IDX_Tools.IDXFile(imgf.GetFileStream(entry)), Path.GetFileNameWithoutExtension(filename).Substring(3)));
+                                System.Diagnostics.Debug.WriteLine("  Added IDX to list");
                                 break;
                         }
                     }
                     if (advanced)
                     {
-                        Console.WriteLine("-----------File {0,4}/{1}, using the {2} idx\n", ++i, total, name);
+                        if (name == "KH2")
+                        {
+                            Console.WriteLine("-----------File {0,4}/{1}, using {2}.IDX\n", ++i, total, name);
+                        }
+                        else
+                        {
+                            Console.WriteLine("-----------File {0,4}/{1}, using 000{2}.idx\n", ++i, total, name);
+                        }
                         Console.WriteLine("Dual Hash flag: {0}", entry.IsDualHash); //Always false but anyways
                         Console.WriteLine("Hashed filename: {0}\nHashAlt: {1}", entry.Hash, entry.HashAlt);
                         Console.WriteLine("Compression flags: {0}", entry.IsCompressed);
@@ -125,9 +134,9 @@ namespace KH2FM_Toolkit
                     {
                         Console.WriteLine("[{2}: {0,4}/{1}]\tExtracting {3}", ++i, total, name, filename);
                     }
-                    filename = Path.GetFullPath(tfolder + filename);
-                    Directory.CreateDirectory(Path.GetDirectoryName(filename));
-                    using (var output = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+                    filename = System.IO.Path.GetFullPath(tfolder + filename);
+                    System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(filename));
+                    using (FileStream output = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
                     {
                         bool adSize = advanced;
                         imgf.ReadFile(entry, output, adSize);
@@ -135,28 +144,25 @@ namespace KH2FM_Toolkit
                 }
                 if (recurse && idxs.Count != 0)
                 {
-                    foreach (var sidx in idxs)
-                    {
-                        ExtractIDX(sidx.Item1, img, false, tfolder, sidx.Item2);
-                    }
+                    foreach (Tuple<IDX_Tools.IDXFile, string> sidx in idxs) { ExtractIDX(sidx.Item1, img, false, tfolder, sidx.Item2); }
                 }
             }
         }
 
         private static void ExtractISO(Stream isofile, string tfolder = "export/")
         {
-            using (var iso = new ISOFileReader(isofile))
+            using (ISO_Tools.ISOFileReader iso = new ISO_Tools.ISOFileReader(isofile))
             {
-                var idxs = new List<IDXFile>();
-                var idxnames = new List<string>();
+                List<IDX_Tools.IDXFile> idxs = new List<IDX_Tools.IDXFile>();
+                List<string> idxnames = new List<string>();
                 int i = 0;
-                foreach (FileDescriptor file in iso)
+                foreach (ISO_Tools.FileDescriptor file in iso)
                 {
                     ++i;
                     string filename = file.FullName;
                     if (filename.EndsWith(".IDX"))
                     {
-                        idxs.Add(new IDXFile(iso.GetFileStream(file)));
+                        idxs.Add(new IDX_Tools.IDXFile(iso.GetFileStream(file)));
                         idxnames.Add(Path.GetFileNameWithoutExtension(filename));
                         //continue;
                         //Write the IDX too
@@ -166,17 +172,17 @@ namespace KH2FM_Toolkit
                         continue;
                     }
                     Console.WriteLine("[ISO: {0,3}]\tExtracting {1}", i, filename);
-                    filename = Path.GetFullPath(tfolder + "ISO/" + filename);
+                    filename = System.IO.Path.GetFullPath(tfolder + "ISO/" + filename);
                     try
                     {
-                        Directory.CreateDirectory(Path.GetDirectoryName(filename));
+                        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(filename));
                     }
                     catch (IOException e)
                     {
                         WriteError("Failed creating directory: {0}", e.Message);
                         continue;
                     }
-                    using (var output = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+                    using (FileStream output = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
                     {
                         iso.CopyFile(file, output);
                     }
@@ -185,17 +191,13 @@ namespace KH2FM_Toolkit
                 {
                     try
                     {
-                        FileDescriptor file = iso.FindFile(idxnames[i] + ".IMG");
-                        ExtractIDX(idxs[i], iso.GetFileStream(file), true, tfolder + "" + idxnames[i] + "/", idxnames[i]);
+                        ISO_Tools.FileDescriptor file = iso.FindFile(idxnames[i] + ".IMG");
                         using (Substream img = iso.GetFileStream(file))
                         {
                             ExtractIDX(idxs[i], img, true, tfolder + "" + idxnames[i] + "/", idxnames[i]);
                         }
                     }
-                    catch (FileNotFoundException)
-                    {
-                        WriteError("ERROR: Failed to find matching IMG for IDX");
-                    }
+                    catch (FileNotFoundException) { WriteError("ERROR: Failed to find matching IMG for IDX"); }
                 }
             }
         }
@@ -570,7 +572,7 @@ namespace KH2FM_Toolkit
                 var streamwriter = new StreamWriter(filestream);
                 streamwriter.AutoFlush = true;
                 Console.SetOut(streamwriter);
-                Console.SetError(streamwriter);
+                Console.SetError(streamwriter); //TODO Redirect to a txt, but problem: make disappear the text on the console. Need to mirror the text
             }
             if (isoname == null)
             {
