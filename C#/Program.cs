@@ -114,7 +114,8 @@ namespace KH2FM_Toolkit
                     }
                     if (advanced)
                     {
-                        Console.WriteLine("-----------File {0,4}/{1} , using {2}.IMG\n", ++i, total, name);
+                        Console.WriteLine("-----------File {0,4}/{1}, using the {2} idx\n", ++i, total, name);
+                        Console.WriteLine("Dual Hash flag: {0}", entry.IsDualHash); //Always false but anyways
                         Console.WriteLine("Hashed filename: {0}\nHashAlt: {1}", entry.Hash, entry.HashAlt);
                         Console.WriteLine("Compression flags: {0}", entry.IsCompressed);
                         Console.WriteLine("Size (packed): {0}", entry.CompressedDataLength);
@@ -366,9 +367,6 @@ namespace KH2FM_Toolkit
                     }
                 }
                 return npair.GetCurrentIDX();
-                MemoryStream ret = npair.GetCurrentIDX();
-                ret.Position = 0;
-                return ret;
             }
         }
 
@@ -500,6 +498,7 @@ namespace KH2FM_Toolkit
         /// <summary>The main entry point for the application.</summary>
         private static void Main(string[] args)
         {
+            bool log = false;
             Console.Title = program.ProductName + " " + program.FileVersion + " [" + program.CompanyName + "]";
 #if DEBUG
             try
@@ -533,13 +532,15 @@ namespace KH2FM_Toolkit
                     case "-advancedinfo":
                         advanced = true;
                         break;
+                    case "-log":
+                        log = true;
+                        break;
                     case "-help":
                         byte[] buffer = Encoding.ASCII.GetBytes(Resources.Readme);
                         File.WriteAllBytes("Readme.txt", buffer);
                         Console.Write("Help extracted as a Readme\nPress enter to continue...");
                         Console.Read();
                         return;
-                        break;
                     case "-patchmaker":
                         KH2ISO_PatchMaker.Program.Mainp(args);
                         break;
@@ -563,7 +564,14 @@ namespace KH2FM_Toolkit
             #endregion Arguments
 
             #region Description
-
+            if (log)
+            {
+                FileStream filestream = new FileStream("log.log", FileMode.Create);
+                var streamwriter = new StreamWriter(filestream);
+                streamwriter.AutoFlush = true;
+                Console.SetOut(streamwriter);
+                Console.SetError(streamwriter);
+            }
             if (isoname == null)
             {
                 isoname = "KH2FM.ISO";

@@ -12,6 +12,7 @@ using ISOTP = KH2FM_Toolkit.Program;
 
 namespace KH2ISO_PatchMaker
 {
+
     internal class PatchFile
     {
         public const uint Signature = 0x5032484B;
@@ -438,6 +439,8 @@ namespace KH2ISO_PatchMaker
 
         internal static void Mainp(string[] args)
         {
+            bool log = false;
+
             Console.Title = ISOTP.program.ProductName + " " + ISOTP.program.FileVersion + " [" +
                             ISOTP.program.CompanyName + "]";
             var patch = new PatchFile();
@@ -459,6 +462,9 @@ namespace KH2ISO_PatchMaker
                         break;
                     case "-batch":
                         batch = true;
+                        break;
+                    case "-log":
+                        log = true;
                         break;
 #if DEBUG
                     case "-decrypted":
@@ -512,6 +518,14 @@ namespace KH2ISO_PatchMaker
                 }
             }
             //TODO MENU
+            if (log)
+            {
+                FileStream filestream = new FileStream("log.log", FileMode.Create);
+                var streamwriter = new StreamWriter(filestream);
+                streamwriter.AutoFlush = true;
+                Console.SetOut(streamwriter);
+                Console.SetError(streamwriter);
+            }
             if (!batch)
             {
                 Console.ForegroundColor = ConsoleColor.Gray;

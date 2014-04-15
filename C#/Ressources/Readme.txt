@@ -15,6 +15,7 @@ Options:
 [-exit]: Just stop the soft. Nothing else(Making the "return;" action")
 [-batch]: Skipping all the "Console.Readline();"(when you need to press enter)and closing automatically the soft at the end.
 [-patchmaker]: Launching the patchmaker.
+[-advancedinfo]: To use after -extractor. This option will show advanced info about files extracted.
 
 Changelog:
 [2.5.0.0]
