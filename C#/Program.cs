@@ -25,6 +25,7 @@ namespace KH2FM_Toolkit
             FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
 
         private static readonly PatchManager patches = new PatchManager();
+        private static bool advanced;
         public static DateTime builddate { get; set; }
 
         private static DateTime RetrieveLinkerTimestamp()
@@ -71,7 +72,6 @@ namespace KH2FM_Toolkit
             Console.ReadLine();
         }
 
-        static bool advanced = false;
         /// <param name="img">Left open.</param>
         private static void ExtractIDX(IDXFile idx, Stream img, bool recurse = false, string tfolder = "export/",
             string name = "")
@@ -112,7 +112,7 @@ namespace KH2FM_Toolkit
                                 break;
                         }
                     }
-                    if (advanced == true)
+                    if (advanced)
                     {
                         Console.WriteLine("-----------File {0,4}/{1} , using {2}.IMG\n", ++i, total, name);
                         Console.WriteLine("Hashed filename: {0}\nHashAlt: {1}", entry.Hash, entry.HashAlt);
