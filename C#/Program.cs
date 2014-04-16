@@ -122,7 +122,14 @@ namespace KH2FM_Toolkit
                         }
                         else
                         {
-                            Console.WriteLine("-----------File {0,4}/{1}, using 000{2}.idx\n", ++i, total, name);
+                            if (name == "OVL")
+                            {
+                                Console.WriteLine("-----------File {0,4}/{1}, using {2}.IDX\n", ++i, total, name);
+                            }
+                            else
+                            {
+                                Console.WriteLine("-----------File {0,4}/{1}, using 000{2}.idx\n", ++i, total, name);
+                            }
                         }
                         Console.WriteLine("Dual Hash flag: {0}", entry.IsDualHash); //Always false but anyways
                         Console.WriteLine("Hashed filename: {0}\nHashAlt: {1}", entry.Hash, entry.HashAlt);
@@ -540,7 +547,7 @@ namespace KH2FM_Toolkit
                     case "-help":
                         byte[] buffer = Encoding.ASCII.GetBytes(Resources.Readme);
                         File.WriteAllBytes("Readme.txt", buffer);
-                        Console.Write("Help extracted as a Readme\nPress enter to continue...");
+                        Console.Write("Help extracted as a Readme\nPress enter to leave the software...");
                         Console.Read();
                         return;
                     case "-patchmaker":

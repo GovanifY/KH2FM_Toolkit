@@ -1,6 +1,6 @@
 This tool is able to extract and modify the iso of the game Kingdom Hearts 2(Final Mix)
 It uses a list that gives all of the ISO resource names in clear (msg/jp/al.bar) instead of their hashes(0x56203d96).
-This list isn't complete yet but contains all the files needed for the translation.
+The list isn't totally complete but all the files you should need got a name.
 
 This tool can launch more than one patch and mix them instead to have to apply them one by one.
 Simply drag 'n drop all patches you need to apply to the toolkit or, with the 
@@ -17,7 +17,35 @@ Options:
 [-patchmaker]: Launching the patchmaker.
 [-advancedinfo]: To use after -extractor. This option will show advanced info about files extracted.
 
+
+Patchmaker Options(to put after the option -patchmaker):
+
+[-xeeynamo]: Will create a patch with xeeynamo's encryption.
+[-batch]: Skip all the "Console.Readline();"(when you need to press enter)and closing automatically the soft at the end. (Yes, another time)
+[-version x]: Set the version to x. Need to be a entire number.
+[-author x]: Set the author to x
+[-changelog x]: Set the changelog to x
+[-credits x]: Set the credits to x
+[-skipchangelog]: Nothing is used for the changelogs, Changelog option is not shown at patching process
+[-skipcredits]: Nothing is used for the credits, Changelog option is not shown at patching process
+[-output something.kh2patch]: Set the output file to something.kh2patch
+
+Options asked:
+[Relink to this filename:]: This will relink your file to an idx. Should be automatic now, leave blank.
+[Compress this file?]: This will compress or no the file using internal compression of KH2(FM).
+[Parent compressed file]: Just choose where to modify the file: in KH2, OVL, or the ISO.
+[Should this file be added if he's not in the game?]: If the file don't exist, will try to create a new entry for this file.
+
+When you want to write the patch file, just leave blank a filename, it will create him
+
+
+Thanks to xeeynamo that programmed his tools on C and for translated the game on english. Love you <3
+
 Changelog:
+[2.6.0.0]
+*Full cleanup of the code
+*Extraction process totally recreated
+*Some new options added
 [2.5.0.0]
 *Xeeynamo's patch format support added(patchmaker and patcher side)
 *Patchmaker added
@@ -26,29 +54,9 @@ Changelog:
 *Initial release
 
 
-Patchmaker Options(to put after the option -patchmaker):
-
-[-xeeynamo]: Using the encryption xeeynamo used WARNING: DESTRUCTIVE METHOD
-[-batch]: Skipping all the "Console.Readline();"(when you need to press enter)and closing automatically the soft at the end. (Yes, another time)
-[-version x]: Set the version to x. Need to be a entire number between 0 and 9
-[-author x]: Set the author to x
-[-changelog x]: Set the changelog to x
-[-credits x]: Set the credits to x
-[-skipchangelog]: Nothing is used for the changelogs, Changelog option is not shown at patching process
-[-skipcredits]: Nothing is used for the credits, Changelog option is not shown at patching process
-[-output something.kh2patch]: Set the output file to something.kh2patch
-
-You can, for patch files, write 0, 1 or 2 to parent compressed file or KH2, OVL or ISO. I think it is enough obvious for don't have to explain this.
-
-When you want to write the patch file, just leave blank a filename, it will create him
 
 
-Thanks to xeeynamo that programmed his tools on C and for translated the game on english. Love you <3
-
-
-
-
------Copyright 02/25/2014 © GovanifY
+-----Copyright 04/16/2014 © GovanifY
 
                                                                                                                                                 
                                                                                                                                                 
