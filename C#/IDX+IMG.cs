@@ -226,7 +226,7 @@ namespace IDX_Tools
                     //Seems that the "size" component just truncated if it's too large, as seen by the larger files (videos, Title.vas)
                     /* Size component:
                      * * Includes at minimum 0x0FFF
-                     * * Does NOT include 0x1000 (@noname/10303F6F.bin; vagstream/Title.vas; zmovie/fm/me3.pss; zmovie/fm/opn.pss)
+                     * * Does NOT include 0x1000 (obj/B_LK120_RAW.mset; vagstream/Title.vas; zmovie/fm/me3.pss; zmovie/fm/opn.pss)
                      * * Does include 0x2000 (zmovie/fm/me3.pss; zmovie/fm/opn.pss)
                      * * 0x4000 is the compression flag
                      * * 0x8000 is the alt hash flag
