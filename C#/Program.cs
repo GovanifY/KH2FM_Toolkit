@@ -657,48 +657,56 @@ namespace KH2FM_Toolkit
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.Write("\nYou have a correct dump of the game KH2FM!");
                             Console.ResetColor();
+                            goto EOF;
                         }
                         if (isouser == KH2UKiso)
                         {
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.Write("\nYou have a correct dump of the game KH2 UK!");
                             Console.ResetColor();
+                            goto EOF;
                         }
                         if (isouser == KH2FRiso)
                         {
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.Write("\nYou have a correct dump of the game KH2 FR!");
                             Console.ResetColor();
+                            goto EOF;
                         }
                         if (isouser == KH2GRiso)
                         {
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.Write("\nYou have a correct dump of the game KH2 GR!");
                             Console.ResetColor();
+                            goto EOF;
                         }
                         if (isouser == KH2ITiso)
                         {
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.Write("\nYou have a correct dump of the game KH2 IT!");
                             Console.ResetColor();
+                            goto EOF;
                         }
                         if (isouser == KH2JAPiso)
                         {
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.Write("\nYou have a correct dump of the game KH2 JAP!");
                             Console.ResetColor();
+                            goto EOF;
                         }
                         if (isouser == KH2ESiso)
                         {
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.Write("\nYou have a correct dump of the game KH2 ES!");
                             Console.ResetColor();
+                            goto EOF;
                         }
                         if (isouser == KH2USiso)
                         {
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.Write("\nYou have a correct dump of the game KH2 US!");
                             Console.ResetColor();
+                            goto EOF;
                         }
                              if (isouser == KH2BETAiso)
                         {
@@ -707,6 +715,7 @@ namespace KH2FM_Toolkit
                             Console.ForegroundColor = ConsoleColor.Red;
                             Console.Write("Wait you SERIOUSLY HAVE ONE? o.O");
                             Console.ResetColor();
+                            goto EOF;
                         }
                         else
                         {
@@ -714,6 +723,7 @@ namespace KH2FM_Toolkit
                             Console.Write("\nYou don't have a correct dump! Please make a new one!");
                             Console.ResetColor();
                         }
+                    EOF:
                         Console.ReadLine();
                         return;
                     }
