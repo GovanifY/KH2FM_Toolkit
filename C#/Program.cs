@@ -650,6 +650,7 @@ namespace KH2FM_Toolkit
                         string KH2JAPiso = "678e1c6545e6d5ef7ed3e6c496b12f5dd2ecbe56";
                         string KH2ESiso = "d190089a0718a7c204ac256ddedc564d600731f3";
                         string KH2USiso = "7e57081735d82fd84be7f79ab05ad3e795bc7e5e";
+                        string KH2BETAiso = "9867322a989a0a3e566e13cf962853a79df9c508;";
                         Console.Write("The SHA1 hash of the your is: {0}", isouser);
                         if (isouser == KH2FMiso)
                         {
@@ -697,6 +698,14 @@ namespace KH2FM_Toolkit
                         {
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.Write("\nYou have a correct dump of the game KH2 US!");
+                            Console.ResetColor();
+                        }
+                             if (isouser == KH2BETAiso)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write("\nYou have a correct dump of the game KH2 PROTOTYPE!\n");
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.Write("Wait you SERIOUSLY HAVE ONE? o.O");
                             Console.ResetColor();
                         }
                         else
