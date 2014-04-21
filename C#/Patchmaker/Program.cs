@@ -12,7 +12,6 @@ using ISOTP = KH2FM_Toolkit.Program;
 
 namespace KH2ISO_PatchMaker
 {
-
     internal class PatchFile
     {
         public const uint Signature = 0x5032484B;
@@ -520,7 +519,7 @@ namespace KH2ISO_PatchMaker
             //TODO MENU
             if (log)
             {
-                FileStream filestream = new FileStream("log.log", FileMode.Create);
+                var filestream = new FileStream("log.log", FileMode.Create);
                 var streamwriter = new StreamWriter(filestream);
                 streamwriter.AutoFlush = true;
                 Console.SetOut(streamwriter);

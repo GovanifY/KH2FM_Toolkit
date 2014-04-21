@@ -10,11 +10,13 @@ namespace KHCompress
         {
         }
 
-        public NotCompressableException(string message) : base(message)
+        public NotCompressableException(string message)
+            : base(message)
         {
         }
 
-        public NotCompressableException(string message, Exception inner) : base(message, inner)
+        public NotCompressableException(string message, Exception inner)
+            : base(message, inner)
         {
         }
     }
@@ -44,7 +46,7 @@ namespace KHCompress
             {
                 if (cnt[i] < fC)
                 {
-                    f = (byte) i;
+                    f = (byte)i;
                     fC = cnt[i];
                     if (fC == 0)
                     {
@@ -62,7 +64,7 @@ namespace KHCompress
             {
                 throw new NotCompressableException("Source too big");
             }
-                // 10 bytes is the absolute smallest that can be compressed. "000000000" -> "+++0LLLLF".
+            // 10 bytes is the absolute smallest that can be compressed. "000000000" -> "+++0LLLLF".
             if (input.Length < 10)
             {
                 throw new NotCompressableException("Source too small");
@@ -88,7 +90,7 @@ namespace KHCompress
                             if (++cnt == maxMatch + 3)
                             {
                                 mLen = maxMatch + 3;
-                                mPos = (byte) (j - i);
+                                mPos = (byte)(j - i);
                                 j = buffEnd; // Break out of for loop
                                 break; // Break out of while loop
                             }
@@ -96,14 +98,14 @@ namespace KHCompress
                         if (cnt > mLen)
                         {
                             mLen = cnt;
-                            mPos = (byte) (j - i);
+                            mPos = (byte)(j - i);
                         }
                     }
                     if (mLen > 3)
                     {
                         outbuf[o] = flag;
                         outbuf[--o] = mPos;
-                        outbuf[--o] = (byte) (mLen - 3);
+                        outbuf[--o] = (byte)(mLen - 3);
                         i -= (mLen - 1);
                         continue;
                     }
@@ -127,17 +129,23 @@ namespace KHCompress
             i = input.Length - o - 1;
             var output = new byte[i];
             Array.Copy(outbuf, o, output, 0, i - 5);
-            output[i - 5] = (byte) (input.Length >> 24);
-            output[i - 4] = (byte) (input.Length >> 16);
-            output[i - 3] = (byte) (input.Length >> 8);
-            output[i - 2] = (byte) (input.Length);
+            output[i - 5] = (byte)(input.Length >> 24);
+            output[i - 4] = (byte)(input.Length >> 16);
+            output[i - 3] = (byte)(input.Length >> 8);
+            output[i - 2] = (byte)(input.Length);
             output[i - 1] = flag;
-            Console.WriteLine("  Compressed to {0:0%} of the original size!", (double) i/input.Length);
+            Console.WriteLine("  Compressed to {0:0%} of the original size!", (double)i / input.Length);
             return output;
         }
 
         public static byte[] decompress(byte[] input, uint uSize)
         {
+#if NODECOMPRESS
+            return input;
+        }
+    }
+}
+#else
             if (input.LongLength > uint.MaxValue)
             {
                 throw new ArgumentOutOfRangeException("data", "Array to large to handle");
@@ -182,3 +190,4 @@ namespace KHCompress
         }
     }
 }
+#endif

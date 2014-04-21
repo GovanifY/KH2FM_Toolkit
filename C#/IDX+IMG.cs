@@ -370,6 +370,7 @@ namespace IDX_Tools
         {
             file.Position = offset + sector*2048;
         }
+
         public void ReadFile(IDXFile.IDXEntry entry, Stream target, bool AdSize)
         {
             if (entry.IsCompressed)
