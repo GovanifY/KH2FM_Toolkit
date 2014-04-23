@@ -11,6 +11,7 @@ using ISO_Tools;
 using KH2FM_Toolkit.Properties;
 using Utility;
 using System.Security.Cryptography;
+using KHCompress;
 
 namespace KH2FM_Toolkit
 {
@@ -313,6 +314,42 @@ namespace KH2FM_Toolkit
                             continue;
                         }
                         Console.WriteLine("\tPatching...");
+#if extract
+Console.WriteLine("\nEXTRACTING THE FILE!");
+Console.WriteLine("\nGetting the name...");
+string fname2;
+HashPairs.pairs.TryGetValue(file.Hash, out fname2);
+Console.WriteLine("\nCreating directory...");
+Directory.CreateDirectory(Path.GetDirectoryName(fname2));
+Console.WriteLine("\nCreating the file...");
+var fileStream = File.Create(fname2);
+Console.WriteLine("\nConverting the stream to a byte[]...");
+patch.Stream.Position = 0;
+byte[] buffer = new byte[patch.Stream.Length];
+for (int totalBytesCopied = 0; totalBytesCopied < patch.Stream.Length; )
+totalBytesCopied += patch.Stream.Read(buffer, totalBytesCopied, Convert.ToInt32(patch.Stream.Length) - totalBytesCopied);
+Console.WriteLine("\nConverting the int to uint...");
+uint Size = Convert.ToUInt32(buffer.Length);
+byte[] file2 = new byte[0];
+if (patch.Compressed)
+{
+    Console.WriteLine("\nThe file is compressed!");
+    Console.WriteLine("\nDecompressing the file...");
+    file2 = KH2Compressor.decompress(buffer, patch.UncompressedSize);
+}
+else
+{
+    file2 = buffer;
+}
+Console.WriteLine("\nOpening the stream for the file..");
+Stream decompressed = new MemoryStream(file2);
+Console.WriteLine("\nCopying the Stream...");
+decompressed.CopyTo(fileStream);
+Console.WriteLine("\nDefining the filestream as null...");
+fileStream = null;
+decompressed = null;
+Console.WriteLine("\nDone!...");
+#endif
                         try
                         {
                             npair.AddFile(new IDXFile.IDXEntry
@@ -651,7 +688,7 @@ namespace KH2FM_Toolkit
                         string KH2ESiso = "d190089a0718a7c204ac256ddedc564d600731f3";
                         string KH2USiso = "7e57081735d82fd84be7f79ab05ad3e795bc7e5e";
                         string KH2BETAiso = "9867322a989a0a3e566e13cf962853a79df9c508";
-                        Console.Write("The SHA1 hash of the your is: {0}", isouser);
+                        Console.Write("The SHA1 hash of the your iso is: {0}", isouser);
                         if (isouser == KH2FMiso)
                         {
                             Console.ForegroundColor = ConsoleColor.Green;

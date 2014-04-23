@@ -1236,11 +1236,6 @@ namespace ISO_Tools
 
         public void AddFile2(FileDescriptor f, Stream data, string name)
         {
-#if extract
-            Stream Extracted = File.Open(name, FileMode.Create, FileAccess.Write);
-            data.CopyTo(Extracted);
-            Dispose();
-#endif
             SeekEnd();
             EnsureBoundary();
             f.ExtentLBA = SectorPosition;
