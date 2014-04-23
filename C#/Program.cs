@@ -319,8 +319,7 @@ Console.WriteLine("\nEXTRACTING THE FILE!");
 Console.WriteLine("\nGetting the name...");
 string fname2;
 HashPairs.pairs.TryGetValue(file.Hash, out fname2);
-Console.WriteLine("\nCreating directory...");
-Directory.CreateDirectory(Path.GetDirectoryName(fname2));
+if (fname2 == null) { } else { Console.WriteLine("\nCreating directory..."); Directory.CreateDirectory(Path.GetDirectoryName(fname2)); }
 Console.WriteLine("\nCreating the file...");
 var fileStream = File.Create(fname2);
 Console.WriteLine("\nConverting the stream to a byte[]...");
