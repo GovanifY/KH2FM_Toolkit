@@ -15,6 +15,7 @@ using KHCompress;
 
 namespace KH2FM_Toolkit
 {
+
     public static class Program
     {
         /// <summary>
@@ -319,7 +320,10 @@ Console.WriteLine("\nEXTRACTING THE FILE!");
 Console.WriteLine("\nGetting the name...");
 string fname2;
 HashPairs.pairs.TryGetValue(file.Hash, out fname2);
-if (fname2 == null) { } else { Console.WriteLine("\nCreating directory..."); Directory.CreateDirectory(Path.GetDirectoryName(fname2)); }
+Console.WriteLine("\nCreating directory...");
+try { Directory.CreateDirectory(Path.GetDirectoryName(fname2)); }
+catch { Console.WriteLine("\nDirectory is surely null. Trying to create the file anyways..."); goto file; }
+file:
 Console.WriteLine("\nCreating the file...");
 var fileStream = File.Create(fname2);
 Console.WriteLine("\nConverting the stream to a byte[]...");
