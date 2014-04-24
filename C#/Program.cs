@@ -454,12 +454,6 @@ Console.WriteLine("\nDone!...");
             using (var iso = new ISOFileReader(isofile))
             using (var niso = new ISOCopyWriter(nisofile, iso))
             {
-                if (iso.PrimaryVolumeDescriptor.AbstractFileIdentifier.StartsWith("KH2NONSTANDARD",
-                    StringComparison.InvariantCultureIgnoreCase))
-                {
-                    throw new NotSupportedException(
-                        "This KH2 ISO was modified to use custom data formats which are incompatible with the normal game. This patcher cannot work with this ISO.");
-                }
                 uint i = 0;
                 Trivalent cKh2 = patches.KH2Changed ? Trivalent.ChangesPending : Trivalent.NoChanges,
                     cOvl = patches.OVLChanged ? Trivalent.ChangesPending : Trivalent.NoChanges;
@@ -773,6 +767,7 @@ Console.WriteLine("\nDone!...");
             if (isoname == null)
             {
                 isoname = "KH2FM.ISO";
+            }
                 Console.ForegroundColor = ConsoleColor.Gray;
                 builddate = RetrieveLinkerTimestamp();
                 Console.Write("{0}\nBuild Date: {2}\nVersion {1}", program.ProductName, program.FileVersion, builddate);
@@ -818,56 +813,7 @@ Console.WriteLine("\nDone!...");
                     {
                         Console.ReadLine();
                     }
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    builddate = RetrieveLinkerTimestamp();
-                    Console.Write("{0}\nBuild Date: {2}\nVersion {1}", program.ProductName, program.FileVersion, builddate);
-                    Console.ResetColor();
-#if DEBUG
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("\nPRIVATE RELEASE\n");
-                    Console.ResetColor();
-#else
-                Console.Write("\nPUBLIC RELEASE\n");
-#endif
-#if NODECOMPRESS
-                                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("\nNo decompress edition: Extract files without decompressing them\n");
-                Console.ResetColor();
-#endif
-#if extract
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("\nFUCKING EXTRACTOR EDITION!!!EXTRACTING & PATCHING THE GAMES WITH A KH2PATCH!!\n");
-                Console.ResetColor();
-#endif
-                    Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                    Console.Write("\nProgrammed by {0}\nhttp://www.govanify.blogspot.fr\nhttp://www.govanify.x10host.com",
-                        program.CompanyName);
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    if (extract)
-                    {
-                        Console.Write(
-                            "\n\nThis tool is able to extract the files of the game Kingdom Hearts 2(Final Mix).\nHe is using a list for extracting those files, which is not complete.\nBut this is the most complete one for now.\nHe can extract the files KH2.IMG and OVL.IMG\n\n");
-                    }
-                    else
-                    {
-                        Console.Write(
-                            "\n\nThis tool is able to patch the game Kingdom Hearts 2(Final Mix).\nHe can modify iso files, like the elf and internal files,\nwich are stored inside KH2.IMG and OVL.IMG\nThis tool is recreating too new hashes into the idx files for avoid\na corrupted game. He can add some files too.\n\n");
-                    }
-                    HashPairs.loadHashPairs(printInfo: true);
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.Write("\nPress enter to run using the file:");
-                    Console.ResetColor();
-                    Console.Write(" {0}", isoname);
-                    if (!batch)
-                    {
-                        Console.ReadLine();
-                    }
-
             #endregion Description
-                }
                 try
                 {
                     using (FileStream iso = File.Open(isoname, FileMode.Open, FileAccess.Read, FileShare.Read))
