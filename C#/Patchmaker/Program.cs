@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using GovanifY.Utility;
@@ -65,14 +66,8 @@ namespace KH2ISO_PatchMaker
         {
             stream.Position = 0;
             uint changeLen = 0, creditLen = 0;
-            foreach (var b in Changelogs)
-            {
-                changeLen += 4 + (uint) b.Length;
-            }
-            foreach (var b in Credits)
-            {
-                creditLen += 4 + (uint) b.Length;
-            }
+            changeLen = Changelogs.Aggregate(changeLen, (current, b) => current + (4 + (uint) b.Length));
+            creditLen = Credits.Aggregate(creditLen, (current, b) => current + (4 + (uint) b.Length));
             using (var bw = new BinaryStream(stream, leaveOpen: true))
             {
                 uint i;
@@ -113,13 +108,8 @@ namespace KH2ISO_PatchMaker
                 long fileTotal = 0;
                 try
                 {
-                    foreach (FileEntry file in Files)
-                    {
-                        if (file.Relink == 0)
-                        {
-                            fileTotal = checked(fileTotal + file.Data.Length);
-                        }
-                    }
+                    fileTotal = Files.Where(file => file.Relink == 0)
+                        .Aggregate(fileTotal, (current, file) => checked(current + file.Data.Length));
                 }
                 catch (OverflowException)
                 {
@@ -176,7 +166,7 @@ namespace KH2ISO_PatchMaker
                                     var input = new byte[file.Data.Length];
                                     file.Data.Read(input, 0, (int) file.Data.Length);
                                     Console.Write("Compressing {0}: ",
-                                        file.name != null ? file.name : file.Hash.ToString("X8"));
+                                        file.name ?? file.Hash.ToString("X8"));
                                     byte[] output = KH2Compressor.compress(input);
                                     uint cSizeSectors = (uint) Math.Ceiling((double) output.Length/2048) - 1;
                                     if (output.LongLength > int.MaxValue)
@@ -217,7 +207,7 @@ namespace KH2ISO_PatchMaker
                             }
                             else
                             {
-                                Console.WriteLine("Adding {0}", file.name != null ? file.name : file.Hash.ToString("X8"));
+                                Console.WriteLine("Adding {0}", file.name ?? file.Hash.ToString("X8"));
                                 cSize = (uint) file.Data.Length;
                                 file.Data.Position = 0; //Ensure at beginning
                                 file.Data.CopyTo(filedata);
@@ -261,7 +251,6 @@ namespace KH2ISO_PatchMaker
                 if (filename != null)
                 {
                     File.Delete(filename);
-                    filename = null;
                 }
             }
         }
@@ -686,7 +675,7 @@ namespace KH2ISO_PatchMaker
             } while (true);
             try
             {
-                //TODO Compress(buffer>magic>Compress>Write to output)
+                //TODO Compress(buffer>magic>Compress>Write to output). Files are already compressed, I need to look at this later
                 using (FileStream fs = File.Open(output, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     if (encrypt)
@@ -707,8 +696,9 @@ namespace KH2ISO_PatchMaker
                 {
                     File.Delete("output.kh2patch");
                 }
-                catch
+                catch (Exception z)
                 {
+                    ISOTP.WriteWarning("Failed to delete file: " + z.Message);
                 }
             }
             if (!batch)

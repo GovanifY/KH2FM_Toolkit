@@ -10,8 +10,6 @@ using HashList;
 using IDX_Tools;
 using ISO_Tools;
 using KH2FM_Toolkit.Properties;
-using Utility;
-using KHCompress;
 
 namespace KH2FM_Toolkit
 {
@@ -339,7 +337,7 @@ if (patch.Compressed)
 {
     Console.WriteLine("\nThe file is compressed!");
     Console.WriteLine("\nDecompressing the file...");
-    file2 = KH2Compressor.decompress(buffer, patch.UncompressedSize);
+    file2 = KHCompress.KH2Compressor.decompress(buffer, patch.UncompressedSize);
 }
 else
 {

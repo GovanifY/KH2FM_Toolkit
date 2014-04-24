@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using GovanifY.Utility;
 
@@ -16,7 +17,7 @@ namespace ISO_Tools
         //internal static UInt64 BEInt32(UInt32 i) { return i | (UInt64)(i & 0xFF000000) << 8 | (UInt64)(i & 0x00FF0000) << 24 | (UInt64)(i & 0x0000FF00) << 40 | (UInt64)(i & 0x000000FF) << 56; }
         public static byte[] BEInt32(UInt32 i)
         {
-            return new byte[8]
+            return new[]
             {
                 (byte) (i),
                 (byte) (i >> 8),
@@ -79,7 +80,7 @@ namespace ISO_Tools
         public static byte[] VolumeTimeFromDateTime(DateTime date)
         {
             var buf = new byte[17];
-            VolumeTimeFromDateTime(date, buf, 0);
+            VolumeTimeFromDateTime(date, buf);
             return buf;
         }
 
@@ -133,7 +134,7 @@ namespace ISO_Tools
         public static byte[] DirectoryTimeFromDateTime(DateTime date)
         {
             var buf = new byte[7];
-            DirectoryTimeFromDateTime(date, buf, 0);
+            DirectoryTimeFromDateTime(date, buf);
             return buf;
         }
 
@@ -150,26 +151,12 @@ namespace ISO_Tools
 
         public static bool isAString(char[] str)
         {
-            foreach (char c in str)
-            {
-                if (!isAChar(c))
-                {
-                    return false;
-                }
-            }
-            return true;
+            return str.All(isAChar);
         }
 
         public static bool isDString(char[] str)
         {
-            foreach (char c in str)
-            {
-                if (!isDChar(c))
-                {
-                    return false;
-                }
-            }
-            return true;
+            return str.All(isDChar);
         }
 
         public static bool isFileName(char[] str)
@@ -302,7 +289,7 @@ namespace ISO_Tools
 
         public FileDescriptor(BinaryStream br, FileDescriptor parent = null)
         {
-            if (br.TextEncoding != Encoding.ASCII)
+            if (!Equals(br.TextEncoding, Encoding.ASCII))
             {
                 br.TextEncoding = Encoding.ASCII;
             }
@@ -518,8 +505,6 @@ namespace ISO_Tools
             children.Add(newchild);
         }
 
-        /// <summary>
-        ///     Thrown when a descriptor is empty (<c>Length</c> < 34)</summary>
         [Serializable]
         public class EmptyDescriptorException : Exception
         {
@@ -820,7 +805,7 @@ namespace ISO_Tools
             return current;
         }
 
-        private static IEnumerator<FileDescriptor> GetEnumerator(FileDescriptor parent)
+        private static IEnumerator<FileDescriptor> GetEnumerator(IEnumerable<FileDescriptor> parent)
         {
             foreach (FileDescriptor file in parent)
             {
@@ -889,7 +874,7 @@ namespace ISO_Tools
         {
             if (b.Length < 7)
             {
-                throw new ArgumentException("sector is too small", "sector");
+                throw new ArgumentException("sector is too small", "b");
             }
             VD_Type = (Type) b[0];
             VD_Identifier = Encoding.ASCII.GetString(b, 1, 5);
@@ -898,6 +883,7 @@ namespace ISO_Tools
 
         /// <summary>Checks if the specified array is a valid ISO Volume Descriptor</summary>
         /// <param name="buffer">An array of bytes to check</param>
+        /// <param name="identifier">Identifier</param>
         /// <returns>True if it is valid, false otherwise.</returns>
         public static bool isValid(byte[] buffer, out string identifier)
         {

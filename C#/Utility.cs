@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Utility
+namespace KH2FM_Toolkit
 {
     [Flags]
     public enum Trivalent : byte

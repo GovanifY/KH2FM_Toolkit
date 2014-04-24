@@ -87,11 +87,11 @@ namespace HashList
                             Encoding.UTF8, false, 1024))
                 {
                     string line;
-                    int index;
                     while ((line = rd.ReadLine()) != null)
                     {
                         if (line.Length != 0)
                         {
+                            int index;
                             if (line[0] == '#')
                             {
                                 if (line.StartsWith("#Version ") && line.Length > 9)
@@ -137,8 +137,7 @@ namespace HashList
             {
                 byte[] Hashlistencrypted = File.ReadAllBytes(filename);
                 PatchManager.GYXor(Hashlistencrypted);
-                string Hashtemp2;
-                Hashtemp2 = Path.GetTempFileName();
+                string Hashtemp2 = Path.GetTempFileName();
                 File.WriteAllBytes(Hashtemp2, Hashlistencrypted);
                 using (
                     var rd =
@@ -146,11 +145,11 @@ namespace HashList
                             Encoding.UTF8, false, 1024))
                 {
                     string line;
-                    int index;
                     while ((line = rd.ReadLine()) != null)
                     {
                         if (line.Length != 0)
                         {
+                            int index;
                             if (line[0] == '#')
                             {
                                 if (line.StartsWith("#Version ") && line.Length > 9)

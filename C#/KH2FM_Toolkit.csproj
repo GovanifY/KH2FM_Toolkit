@@ -103,7 +103,6 @@
     <None Include="Ressources\Hashlist.bin" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Heart.ico" />
     <Content Include="Ressources\Readme.txt" />
     <Content Include="toolkit.ico" />
   </ItemGroup>
