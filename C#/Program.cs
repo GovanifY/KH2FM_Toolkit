@@ -630,13 +630,7 @@ Console.WriteLine("\nDone!...");
                 Console.SetError(streamwriter);
                 //TODO Redirect to a txt, but problem: make disappear the text on the console. Need to mirror the text
             }
-            #region SHA1
-            if (verify == true)
-            {
-                if (isoname == null)
-                {
-                    isoname = "KH2FM.ISO";
-                }
+            if (isoname == null){isoname = "KH2FM.ISO";}
                 Console.ForegroundColor = ConsoleColor.Gray;
                 builddate = RetrieveLinkerTimestamp();
                 Console.Write("{0}\nBuild Date: {2}\nVersion {1}", program.ProductName, program.FileVersion, builddate);
@@ -650,12 +644,12 @@ Console.WriteLine("\nDone!...");
 #endif
 #if NODECOMPRESS
                                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("\nNo decompress edition: Extract files without decompressing them\n");
+                Console.Write("\nNODECOMPRESS edition: Decompress algo is returning the input.\n");
                 Console.ResetColor();
 #endif
 #if extract
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("\nFUCKING EXTRACTOR EDITION!!!EXTRACTING & PATCHING THE GAMES WITH A KH2PATCH!!\n");
+                Console.Write("\nKH2PATCH EXTRACTOR edition: Extract the kh2patch when during process.\n");
                 Console.ResetColor();
 #endif
 
@@ -663,13 +657,27 @@ Console.WriteLine("\nDone!...");
                     Console.Write("\nProgrammed by {0}\nhttp://www.govanify.blogspot.fr\nhttp://www.govanify.x10host.com",
                         program.CompanyName);
                     Console.ForegroundColor = ConsoleColor.Gray;
-                        Console.Write(
-                            "\n\nThis tool will calculate the hash of your iso for verify if it's a good dump of KH2(FM) or not.\n\n");
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write("\nPress enter to run using the file:");
-                        Console.ResetColor();
-                        Console.Write(" {0}", isoname);
-                        if (!batch) { Console.ReadLine(); }
+                    if (extract)
+                    {
+                        Console.Write("\n\nThis tool is able to extract the files of the game Kingdom Hearts 2(Final Mix).\nHe is using a list for extracting those files, which is not complete.\nBut this is the most complete one for now.\nHe can extract the files KH2.IMG and OVL.IMG\n\n");
+                    }
+                    else
+                    {
+                        if (verify) { Console.Write("\n\nThis tool will calculate the hash of your iso for verify if it's a good dump of KH2(FM) or not.\n\n"); }
+                        else { Console.Write("\n\nThis tool is able to patch the game Kingdom Hearts 2(Final Mix).\nHe can modify iso files, like the elf and internal files,\nwich are stored inside KH2.IMG and OVL.IMG\nThis tool is recreating too new hashes into the idx files for avoid\na corrupted game. He can add some files too.\n\n"); }
+                    }
+                    HashPairs.loadHashPairs(printInfo: true);
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write("\nPress enter to run using the file:");
+                    Console.ResetColor();
+                    Console.Write(" {0}", isoname);
+                    if (!batch)
+                    {
+                        Console.ReadLine();
+                    }
+                    #region SHA1
+                    if (verify)
+            {
                 Console.Write("Calculating the SHA1 hash of your iso. Please wait...\n");
                 using (var sha1 = SHA1.Create())
                 {
@@ -742,7 +750,7 @@ Console.WriteLine("\nDone!...");
                             Console.ResetColor();
                             goto EOF;
                         }
-                             if (isouser == KH2BETAiso)
+                        if (isouser == KH2BETAiso)
                         {
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.Write("\nYou have a correct dump of the game KH2 PROTOTYPE!\n");
@@ -763,58 +771,9 @@ Console.WriteLine("\nDone!...");
                     }
                 }
             }
-            #endregion
-            if (isoname == null)
-            {
-                isoname = "KH2FM.ISO";
-            }
-                Console.ForegroundColor = ConsoleColor.Gray;
-                builddate = RetrieveLinkerTimestamp();
-                Console.Write("{0}\nBuild Date: {2}\nVersion {1}", program.ProductName, program.FileVersion, builddate);
-                Console.ResetColor();
-#if DEBUG
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("\nPRIVATE RELEASE\n");
-                Console.ResetColor();
-#else
-                Console.Write("\nPUBLIC RELEASE\n");
-#endif
-#if NODECOMPRESS
-                                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("\nNo decompress edition: Extract files without decompressing them\n");
-                Console.ResetColor();
-#endif
-#if extract
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("\nFUCKING EXTRACTOR EDITION!!!EXTRACTING & PATCHING THE GAMES WITH A KH2PATCH!!\n");
-                Console.ResetColor();
-#endif
-
-                    Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                    Console.Write("\nProgrammed by {0}\nhttp://www.govanify.blogspot.fr\nhttp://www.govanify.x10host.com",
-                        program.CompanyName);
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    if (extract)
-                    {
-                        Console.Write(
-                            "\n\nThis tool is able to extract the files of the game Kingdom Hearts 2(Final Mix).\nHe is using a list for extracting those files, which is not complete.\nBut this is the most complete one for now.\nHe can extract the files KH2.IMG and OVL.IMG\n\n");
-                    }
-                    else
-                    {
-                        Console.Write(
-                            "\n\nThis tool is able to patch the game Kingdom Hearts 2(Final Mix).\nHe can modify iso files, like the elf and internal files,\nwich are stored inside KH2.IMG and OVL.IMG\nThis tool is recreating too new hashes into the idx files for avoid\na corrupted game. He can add some files too.\n\n");
-                    }
-                    HashPairs.loadHashPairs(printInfo: true);
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.Write("\nPress enter to run using the file:");
-                    Console.ResetColor();
-                    Console.Write(" {0}", isoname);
-                    if (!batch)
-                    {
-                        Console.ReadLine();
-                    }
+                    #endregion
             #endregion Description
-                try
+                    try
                 {
                     using (FileStream iso = File.Open(isoname, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
