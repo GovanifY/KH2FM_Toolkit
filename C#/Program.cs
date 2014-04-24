@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using GovanifY.Utility;
 using HashList;
@@ -10,33 +11,31 @@ using IDX_Tools;
 using ISO_Tools;
 using KH2FM_Toolkit.Properties;
 using Utility;
-using System.Security.Cryptography;
 using KHCompress;
 
 namespace KH2FM_Toolkit
 {
-
     public static class Program
     {
         /// <summary>
         ///     <para>Sector size of the ISO</para>
         ///     <para>Almost always 2048 bytes</para>
         /// </summary>
-        public const int sectorSize = 2048;
+        public const int SectorSize = 2048;
 
         public static readonly FileVersionInfo program =
             FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
 
-        private static readonly PatchManager patches = new PatchManager();
-        private static bool advanced;
+        private static readonly PatchManager Patches = new PatchManager();
+        private static bool _advanced;
 
-        private static DateTime builddate { get; set; }
+        private static DateTime Builddate { get; set; }
 
         private static DateTime RetrieveLinkerTimestamp()
         {
             string filePath = Assembly.GetCallingAssembly().Location;
-            const int c_PeHeaderOffset = 60;
-            const int c_LinkerTimestampOffset = 8;
+            const int cPeHeaderOffset = 60;
+            const int cLinkerTimestampOffset = 8;
             var b = new byte[2048];
             Stream s = null;
 
@@ -53,8 +52,8 @@ namespace KH2FM_Toolkit
                 }
             }
 
-            int i = BitConverter.ToInt32(b, c_PeHeaderOffset);
-            int secondsSince1970 = BitConverter.ToInt32(b, i + c_LinkerTimestampOffset);
+            int i = BitConverter.ToInt32(b, cPeHeaderOffset);
+            int secondsSince1970 = BitConverter.ToInt32(b, i + cLinkerTimestampOffset);
             var dt = new DateTime(1970, 1, 1, 0, 0, 0);
             dt = dt.AddSeconds(secondsSince1970);
             dt = dt.AddHours(TimeZone.CurrentTimeZone.GetUtcOffset(dt).Hours);
@@ -120,7 +119,7 @@ namespace KH2FM_Toolkit
                                 break;
                         }
                     }
-                    if (advanced)
+                    if (_advanced)
                     {
                         if (name == "KH2")
                         {
@@ -151,7 +150,7 @@ namespace KH2FM_Toolkit
                     Directory.CreateDirectory(Path.GetDirectoryName(filename));
                     using (var output = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
                     {
-                        bool adSize = advanced;
+                        bool adSize = _advanced;
                         imgf.ReadFile(entry, output, adSize);
                     }
                 }
@@ -224,6 +223,8 @@ namespace KH2FM_Toolkit
         /// <param name="sidx">Left open.</param>
         /// <param name="simg">Left open.</param>
         /// <param name="timg">Left open.</param>
+        /// <param name="imgOffset">Img Offset</param>
+        /// <param name="parenthash">Parent Hash</param>
         private static MemoryStream PatchIDXInternal(Stream sidx, Stream simg, Stream timg, long imgOffset,
             uint parenthash = 0)
         {
@@ -284,9 +285,9 @@ namespace KH2FM_Toolkit
                                     Hash = file.Hash,
                                     HashAlt = file.HashAlt,
                                     IsDualHash = file.IsDualHash,
-                                    DataLength = (uint)subidx.Length,
+                                    DataLength = (uint) subidx.Length,
                                     IsCompressed = false,
-                                    CompressedDataLength = (uint)subidx.Length
+                                    CompressedDataLength = (uint) subidx.Length
                                 }, subidx);
                             }
                             continue;
@@ -294,7 +295,7 @@ namespace KH2FM_Toolkit
                     PatchManager.Patch patch;
                     // Could make sure the parents match perfectly, but there's only 1 of every name anyway.
                     // So I'll settle for just making sure the file isn't made for the ISO.
-                    if (patches.patches.TryGetValue(file.Hash, out patch) && /*patch.Parent == parenthash*/
+                    if (Patches.patches.TryGetValue(file.Hash, out patch) && /*patch.Parent == parenthash*/
                         !patch.IsinISO)
                     {
                         patch.IsNew = false;
@@ -310,7 +311,7 @@ namespace KH2FM_Toolkit
                                 Console.WriteLine("\tDeferred Relinking...");
                                 // Add the patch to be processed later, in the new file block
                                 patch.Parent = parenthash;
-                                patches.AddToNewFiles(patch);
+                                Patches.AddToNewFiles(patch);
                             }
                             continue;
                         }
@@ -379,12 +380,12 @@ Console.WriteLine("\nDone!...");
                 }
                 //Check for new files to add
                 List<uint> newfiles;
-                if (patches.newfiles.TryGetValue(parenthash, out newfiles))
+                if (Patches.newfiles.TryGetValue(parenthash, out newfiles))
                 {
                     foreach (uint hash in newfiles)
                     {
                         PatchManager.Patch patch;
-                        if (patches.patches.TryGetValue(hash, out patch) && patch.IsNew)
+                        if (Patches.patches.TryGetValue(hash, out patch) && patch.IsNew)
                         {
                             patch.IsNew = false;
                             string fname;
@@ -431,6 +432,9 @@ Console.WriteLine("\nDone!...");
 
         /// <param name="idx">Closed internally.</param>
         /// <param name="img">Closed internally.</param>
+        /// <param name="imgd">File descriptor of the patch iirc</param>
+        /// <param name="niso">ISOCopyWriter</param>
+        /// <param name="IsOVL">Bool which define if the OVL should be patched</param>
         private static MemoryStream PatchIDX(Stream idx, Stream img, FileDescriptor imgd, ISOCopyWriter niso,
             bool IsOVL = false)
         {
@@ -440,8 +444,8 @@ Console.WriteLine("\nDone!...");
                 niso.SeekEnd();
                 long imgOffset = niso.file.Position;
                 MemoryStream idxms = PatchIDXInternal(idx, img, niso.file, imgOffset, IsOVL ? 1u : 0u);
-                imgd.ExtentLBA = (uint)imgOffset / 2048;
-                imgd.ExtentLength = (uint)(niso.file.Position - imgOffset);
+                imgd.ExtentLBA = (uint) imgOffset/2048;
+                imgd.ExtentLength = (uint) (niso.file.Position - imgOffset);
                 imgd.RecordingDate = DateTime.UtcNow;
                 niso.PatchFile(imgd);
                 niso.SeekEnd();
@@ -455,9 +459,9 @@ Console.WriteLine("\nDone!...");
             using (var niso = new ISOCopyWriter(nisofile, iso))
             {
                 uint i = 0;
-                Trivalent cKh2 = patches.KH2Changed ? Trivalent.ChangesPending : Trivalent.NoChanges,
-                    cOvl = patches.OVLChanged ? Trivalent.ChangesPending : Trivalent.NoChanges;
-                bool cIso = patches.ISOChanged;
+                Trivalent cKh2 = Patches.KH2Changed ? Trivalent.ChangesPending : Trivalent.NoChanges,
+                    cOvl = Patches.OVLChanged ? Trivalent.ChangesPending : Trivalent.NoChanges;
+                bool cIso = Patches.ISOChanged;
                 foreach (FileDescriptor file in iso)
                 {
                     Console.Write("[ISO: {0,4}]\t{1}", ++i, file.FullName);
@@ -529,7 +533,7 @@ Console.WriteLine("\nDone!...");
                     else if (cIso)
                     {
                         PatchManager.Patch patch;
-                        if (patches.patches.TryGetValue(PatchManager.ToHash(name), out patch) && patch.IsinISO)
+                        if (Patches.patches.TryGetValue(PatchManager.ToHash(name), out patch) && patch.IsinISO)
                         {
                             Console.WriteLine("\tPatching...");
                             file.RecordingDate = DateTime.UtcNow;
@@ -549,6 +553,7 @@ Console.WriteLine("\nDone!...");
         }
 
         /// <summary>The main entry point for the application.</summary>
+        /// <exception cref="Exception">Cannot delete debug.log</exception>
         private static void Main(string[] args)
         {
             bool log = false;
@@ -558,8 +563,10 @@ Console.WriteLine("\nDone!...");
             {
                 File.Delete("debug.log");
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine("Cannot delete debug.log!: {0}", e);
+                throw new Exception();
             }
             Debug.AutoFlush = true;
             Debug.Listeners.Add(new TextWriterTraceListener("debug.log"));
@@ -584,12 +591,13 @@ Console.WriteLine("\nDone!...");
                         extract = true;
                         break;
                     case "-advancedinfo":
-                        advanced = true;
+                        _advanced = true;
                         break;
                     case "-log":
                         log = true;
                         break;
-                    case "-verifyiso": verify = true;
+                    case "-verifyiso":
+                        verify = true;
                         break;
                     case "-help":
                         byte[] buffer = Encoding.ASCII.GetBytes(Resources.Readme);
@@ -609,7 +617,7 @@ Console.WriteLine("\nDone!...");
                             }
                             else if (arg.EndsWith(".kh2patch", StringComparison.InvariantCultureIgnoreCase))
                             {
-                                patches.AddPatch(arg);
+                                Patches.AddPatch(arg);
                             }
                         }
 
@@ -624,21 +632,23 @@ Console.WriteLine("\nDone!...");
             if (log)
             {
                 var filestream = new FileStream("log.log", FileMode.Create);
-                var streamwriter = new StreamWriter(filestream);
-                streamwriter.AutoFlush = true;
+                var streamwriter = new StreamWriter(filestream) {AutoFlush = true};
                 Console.SetOut(streamwriter);
                 Console.SetError(streamwriter);
                 //TODO Redirect to a txt, but problem: make disappear the text on the console. Need to mirror the text
             }
-            if (isoname == null){isoname = "KH2FM.ISO";}
-                Console.ForegroundColor = ConsoleColor.Gray;
-                builddate = RetrieveLinkerTimestamp();
-                Console.Write("{0}\nBuild Date: {2}\nVersion {1}", program.ProductName, program.FileVersion, builddate);
-                Console.ResetColor();
+            if (isoname == null)
+            {
+                isoname = "KH2FM.ISO";
+            }
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Builddate = RetrieveLinkerTimestamp();
+            Console.Write("{0}\nBuild Date: {2}\nVersion {1}", program.ProductName, program.FileVersion, Builddate);
+            Console.ResetColor();
 #if DEBUG
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("\nPRIVATE RELEASE\n");
-                Console.ResetColor();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write("\nPRIVATE RELEASE\n");
+            Console.ResetColor();
 #else
                 Console.Write("\nPUBLIC RELEASE\n");
 #endif
@@ -653,47 +663,55 @@ Console.WriteLine("\nDone!...");
                 Console.ResetColor();
 #endif
 
-                    Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                    Console.Write("\nProgrammed by {0}\nhttp://www.govanify.blogspot.fr\nhttp://www.govanify.x10host.com",
-                        program.CompanyName);
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    if (extract)
-                    {
-                        Console.Write("\n\nThis tool is able to extract the files of the game Kingdom Hearts 2(Final Mix).\nHe is using a list for extracting those files, which is not complete.\nBut this is the most complete one for now.\nHe can extract the files KH2.IMG and OVL.IMG\n\n");
-                    }
-                    else
-                    {
-                        if (verify) { Console.Write("\n\nThis tool will calculate the hash of your iso for verify if it's a good dump of KH2(FM) or not.\n\n"); }
-                        else { Console.Write("\n\nThis tool is able to patch the game Kingdom Hearts 2(Final Mix).\nHe can modify iso files, like the elf and internal files,\nwich are stored inside KH2.IMG and OVL.IMG\nThis tool is recreating too new hashes into the idx files for avoid\na corrupted game. He can add some files too.\n\n"); }
-                    }
-                    HashPairs.loadHashPairs(printInfo: true);
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.Write("\nPress enter to run using the file:");
-                    Console.ResetColor();
-                    Console.Write(" {0}", isoname);
-                    if (!batch)
-                    {
-                        Console.ReadLine();
-                    }
-                    #region SHA1
-                    if (verify)
+            Console.ForegroundColor = ConsoleColor.DarkMagenta;
+            Console.Write("\nProgrammed by {0}\nhttp://www.govanify.blogspot.fr\nhttp://www.govanify.x10host.com",
+                program.CompanyName);
+            Console.ForegroundColor = ConsoleColor.Gray;
+            if (extract)
+            {
+                Console.Write(
+                    "\n\nThis tool is able to extract the files of the game Kingdom Hearts 2(Final Mix).\nHe is using a list for extracting those files, which is not complete.\nBut this is the most complete one for now.\nHe can extract the files KH2.IMG and OVL.IMG\n\n");
+            }
+            else
+            {
+                Console.Write(verify
+                    ? "\n\nThis tool will calculate the hash of your iso for verify if it's a good dump of KH2(FM) or not.\n\n"
+                    : "\n\nThis tool is able to patch the game Kingdom Hearts 2(Final Mix).\nHe can modify iso files, like the elf and internal files,\nwich are stored inside KH2.IMG and OVL.IMG\nThis tool is recreating too new hashes into the idx files for avoid\na corrupted game. He can add some files too.\n\n");
+            }
+            HashPairs.loadHashPairs(printInfo: true);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write("\nPress enter to run using the file:");
+            Console.ResetColor();
+            Console.Write(" {0}", isoname);
+            if (!batch)
+            {
+                Console.ReadLine();
+            }
+
+            #endregion Description
+
+            #region SHA1
+
+            if (verify)
             {
                 Console.Write("Calculating the SHA1 hash of your iso. Please wait...\n");
-                using (var sha1 = SHA1.Create())
+                using (SHA1 sha1 = SHA1.Create())
                 {
-                    using (var stream = File.OpenRead(isoname))
+                    using (FileStream stream = File.OpenRead(isoname))
                     {
+                        //List of all SHA1 hashes of KH2 games
                         string isouser = BitConverter.ToString(sha1.ComputeHash(stream)).Replace("-", "").ToLower();
-                        string KH2FMiso = "81c177a374e1bddf8453c8c96493d4e715a19236";
-                        string KH2UKiso = "f541888cf953559bf4ef8c7e51a822f50e05265c";
-                        string KH2FRiso = "70f69a59ba47edae5d41dec7396af0d747e92131";
-                        string KH2GRiso = "1a03ffe1e3db3c5f920dd2f1a5e90f38783da43b";
-                        string KH2ITiso = "36cfb0e3ee615b9228ec9a949d4d41cc0edf2e3a";
-                        string KH2JAPiso = "678e1c6545e6d5ef7ed3e6c496b12f5dd2ecbe56";
-                        string KH2ESiso = "d190089a0718a7c204ac256ddedc564d600731f3";
-                        string KH2USiso = "7e57081735d82fd84be7f79ab05ad3e795bc7e5e";
-                        string KH2BETAiso = "9867322a989a0a3e566e13cf962853a79df9c508";
+                        const string KH2FMiso = "81c177a374e1bddf8453c8c96493d4e715a19236";
+                        const string KH2UKiso = "f541888cf953559bf4ef8c7e51a822f50e05265c";
+                        const string KH2FRiso = "70f69a59ba47edae5d41dec7396af0d747e92131";
+                        const string KH2GRiso = "1a03ffe1e3db3c5f920dd2f1a5e90f38783da43b";
+                        const string KH2ITiso = "36cfb0e3ee615b9228ec9a949d4d41cc0edf2e3a";
+                        const string KH2JAPiso = "678e1c6545e6d5ef7ed3e6c496b12f5dd2ecbe56";
+                        const string KH2ESiso = "d190089a0718a7c204ac256ddedc564d600731f3";
+                        const string KH2USiso = "7e57081735d82fd84be7f79ab05ad3e795bc7e5e";
+                        const string KH2BETAiso = "9867322a989a0a3e566e13cf962853a79df9c508";
                         Console.Write("The SHA1 hash of the your iso is: {0}", isouser);
+                        //I'm sure I can make those checks liter but too lazy to do it
                         if (isouser == KH2FMiso)
                         {
                             Console.ForegroundColor = ConsoleColor.Green;
@@ -757,7 +775,6 @@ Console.WriteLine("\nDone!...");
                             Console.ForegroundColor = ConsoleColor.Red;
                             Console.Write("Wait you SERIOUSLY HAVE ONE? o.O");
                             Console.ResetColor();
-                            goto EOF;
                         }
                         else
                         {
@@ -765,66 +782,67 @@ Console.WriteLine("\nDone!...");
                             Console.Write("\nYou don't have a correct dump! Please make a new one!");
                             Console.ResetColor();
                         }
-                    EOF:
+                        EOF:
                         Console.ReadLine();
                         return;
                     }
                 }
             }
-                    #endregion
-            #endregion Description
-                    try
+
+            #endregion
+
+            try
+            {
+                using (FileStream iso = File.Open(isoname, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    using (FileStream iso = File.Open(isoname, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    if (extract)
                     {
-                        if (extract)
+                        ExtractISO(iso);
+                    }
+                    else
+                    {
+                        if (Patches.patches.Count == 0)
                         {
-                            ExtractISO(iso);
+                            WriteWarning("No patches specified, nothing to do!");
                         }
                         else
                         {
-                            if (patches.patches.Count == 0)
+                            isoname = Path.ChangeExtension(isoname, ".new.iso");
+                            try
                             {
-                                WriteWarning("No patches specified, nothing to do!");
+                                using (
+                                    FileStream niso = File.Open(isoname, FileMode.Create, FileAccess.ReadWrite,
+                                        FileShare.None))
+                                {
+                                    PatchISO(iso, niso);
+                                }
                             }
-                            else
+                            catch (Exception)
                             {
-                                isoname = Path.ChangeExtension(isoname, ".new.iso");
-                                try
-                                {
-                                    using (
-                                        FileStream niso = File.Open(isoname, FileMode.Create, FileAccess.ReadWrite,
-                                            FileShare.None))
-                                    {
-                                        PatchISO(iso, niso);
-                                    }
-                                }
-                                catch (Exception)
-                                {
-                                    //Delete the new "incomplete" iso
-                                    File.Delete(isoname);
-                                    throw;
-                                }
+                                //Delete the new "incomplete" iso
+                                File.Delete(isoname);
+                                throw;
                             }
                         }
                     }
                 }
-                catch (FileNotFoundException e)
-                {
-                    WriteWarning("Failed to open file: " + e.Message);
-                }
-                catch (Exception e)
-                {
-                    WriteWarning(
-                        "An error has occured! Please report this, including the following information:\n{1}: {0}\n{2}",
-                        e.Message, e.GetType().FullName, e.StackTrace);
-                }
-                patches.Dispose();
-                if (!batch)
-                {
-                    Console.Write("\nPress enter to exit...");
-                    Console.ReadLine();
-                }
+            }
+            catch (FileNotFoundException e)
+            {
+                WriteWarning("Failed to open file: " + e.Message);
+            }
+            catch (Exception e)
+            {
+                WriteWarning(
+                    "An error has occured! Please report this, including the following information:\n{1}: {0}\n{2}",
+                    e.Message, e.GetType().FullName, e.StackTrace);
+            }
+            Patches.Dispose();
+            if (!batch)
+            {
+                Console.Write("\nPress enter to exit...");
+                Console.ReadLine();
             }
         }
     }
+}
