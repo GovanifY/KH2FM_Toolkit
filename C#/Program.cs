@@ -10,6 +10,7 @@ using HashList;
 using IDX_Tools;
 using ISO_Tools;
 using KH2FM_Toolkit.Properties;
+using KHCompress;
 
 namespace KH2FM_Toolkit
 {
@@ -315,42 +316,44 @@ namespace KH2FM_Toolkit
                         }
                         Console.WriteLine("\tPatching...");
 #if extract
-Console.WriteLine("\nEXTRACTING THE FILE!");
-Console.WriteLine("\nGetting the name...");
-string fname2;
-HashPairs.pairs.TryGetValue(file.Hash, out fname2);
-Console.WriteLine("\nCreating directory...");
-try { Directory.CreateDirectory(Path.GetDirectoryName(fname2)); }
-catch { Console.WriteLine("\nDirectory is surely null. Trying to create the file anyways..."); goto file; }
-file:
-Console.WriteLine("\nCreating the file...");
-var fileStream = File.Create(fname2);
-Console.WriteLine("\nConverting the stream to a byte[]...");
-patch.Stream.Position = 0;
-byte[] buffer = new byte[patch.Stream.Length];
-for (int totalBytesCopied = 0; totalBytesCopied < patch.Stream.Length; )
-totalBytesCopied += patch.Stream.Read(buffer, totalBytesCopied, Convert.ToInt32(patch.Stream.Length) - totalBytesCopied);
-Console.WriteLine("\nConverting the int to uint...");
-uint Size = Convert.ToUInt32(buffer.Length);
-byte[] file2 = new byte[0];
-if (patch.Compressed)
-{
-    Console.WriteLine("\nThe file is compressed!");
-    Console.WriteLine("\nDecompressing the file...");
-    file2 = KHCompress.KH2Compressor.decompress(buffer, patch.UncompressedSize);
-}
-else
-{
-    file2 = buffer;
-}
-Console.WriteLine("\nOpening the stream for the file..");
-Stream decompressed = new MemoryStream(file2);
-Console.WriteLine("\nCopying the Stream...");
-decompressed.CopyTo(fileStream);
-Console.WriteLine("\nDefining the filestream as null...");
-fileStream = null;
-decompressed = null;
-Console.WriteLine("\nDone!...");
+                        Console.WriteLine("\nEXTRACTING THE FILE!");
+                        Console.WriteLine("\nGetting the name...");
+                        string fname2;
+                        HashPairs.pairs.TryGetValue(file.Hash, out fname2);
+                        Console.WriteLine("\nCreating directory...");
+                        try
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(fname2));
+                        }
+                        catch
+                        {
+                            Console.WriteLine("\nDirectory is surely null. Trying to create the file anyways...");
+                        }
+                        Console.WriteLine("\nCreating the file...");
+                        FileStream fileStream = File.Create(fname2);
+                        Console.WriteLine("\nConverting the stream to a byte[]...");
+                        patch.Stream.Position = 0;
+                        var buffer = new byte[patch.Stream.Length];
+                        for (int totalBytesCopied = 0; totalBytesCopied < patch.Stream.Length;)
+                            totalBytesCopied += patch.Stream.Read(buffer, totalBytesCopied,
+                                Convert.ToInt32(patch.Stream.Length) - totalBytesCopied);
+                        Console.WriteLine("\nConverting the int to uint...");
+                        byte[] file2;
+                        if (patch.Compressed)
+                        {
+                            Console.WriteLine("\nThe file is compressed!");
+                            Console.WriteLine("\nDecompressing the file...");
+                            file2 = KH2Compressor.decompress(buffer, patch.UncompressedSize);
+                        }
+                        else
+                        {
+                            file2 = buffer;
+                        }
+                        Console.WriteLine("\nOpening the stream for the file..");
+                        Stream decompressed = new MemoryStream(file2);
+                        Console.WriteLine("\nCopying the Stream...");
+                        decompressed.CopyTo(fileStream);
+                        Console.WriteLine("\nDone!...");
 #endif
                         try
                         {
@@ -626,7 +629,6 @@ Console.WriteLine("\nDone!...");
             #endregion Arguments
 
             #region Description
-
             if (log)
             {
                 var filestream = new FileStream("log.log", FileMode.Create);
@@ -642,6 +644,10 @@ Console.WriteLine("\nDone!...");
             Console.ForegroundColor = ConsoleColor.Gray;
             Builddate = RetrieveLinkerTimestamp();
             Console.Write("{0}\nBuild Date: {2}\nVersion {1}", program.ProductName, program.FileVersion, Builddate);
+            string Platform;         
+            if (IntPtr.Size == 8) {Platform = "x64";}
+            else {Platform = "x86";}
+            Console.Write("\n{0} build", Platform);
             Console.ResetColor();
 #if DEBUG
             Console.ForegroundColor = ConsoleColor.Red;
@@ -656,9 +662,9 @@ Console.WriteLine("\nDone!...");
                 Console.ResetColor();
 #endif
 #if extract
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("\nKH2PATCH EXTRACTOR edition: Extract the kh2patch when during process.\n");
-                Console.ResetColor();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write("\nKH2PATCH EXTRACTOR edition: Extract the kh2patch when during process.\n");
+            Console.ResetColor();
 #endif
 
             Console.ForegroundColor = ConsoleColor.DarkMagenta;
