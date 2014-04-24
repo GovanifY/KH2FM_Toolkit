@@ -372,7 +372,7 @@ namespace KH2ISO_PatchMaker
             {
                 if (uint.TryParse(inp.Substring(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hash))
                 {
-                    name = HashPairs.NameFromHash(hash);
+                    name = HashList.HashList.NameFromHash(hash);
                 }
                 else
                 {
@@ -386,7 +386,7 @@ namespace KH2ISO_PatchMaker
                 //Check hashpairs anyway, and warn if something unexpected returns
                 if (!hvs)
                 {
-                    if (!HashPairs.pairs.TryGetValue(hash, out name))
+                    if (!HashList.HashList.pairs.TryGetValue(hash, out name))
                     {
                         Console.WriteLine(" Warning: Filename not found into the Hashlist.");
                     }
@@ -534,7 +534,7 @@ namespace KH2ISO_PatchMaker
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.Write(
                     "\n\nThis tool is able to create patches for the software KH2FM_Toolkit.\nHe can add files using the internal compression of the game \nKingdom Hearts 2(Final Mix), relink files to their idx, recreate\nthe iso without size limits and without corruption.\nThis patch system is the best ever made for this game atm.\n");
-                HashPairs.loadHashPairs(printInfo: true);
+                HashList.HashList.loadHashPairs(printInfo: true);
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write("\nPress enter to run using the file:");
                 Console.ResetColor();

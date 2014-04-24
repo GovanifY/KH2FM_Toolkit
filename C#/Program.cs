@@ -219,11 +219,11 @@ namespace KH2FM_Toolkit
             }
         }
 
-        /// <param name="sidx">Left open.</param>
-        /// <param name="simg">Left open.</param>
-        /// <param name="timg">Left open.</param>
-        /// <param name="imgOffset">Img Offset</param>
-        /// <param name="parenthash">Parent Hash</param>
+        /// <param name="sidx">Stream of the original idx.</param>
+        /// <param name="simg">Stream of the original img.</param>
+        /// <param name="timg">img of the new iso.</param>
+        /// <param name="imgOffset">Offset of the new img in the new iso.</param>
+        /// <param name="parenthash">Parent Hash(KH2 or OVL or 000's)</param>
         private static MemoryStream PatchIDXInternal(Stream sidx, Stream simg, Stream timg, long imgOffset,
             uint parenthash = 0)
         {
@@ -237,7 +237,7 @@ namespace KH2FM_Toolkit
             {
                 parentname = "OVL";
             }
-            else if (HashPairs.pairs.TryGetValue(parenthash, out parentname))
+            else if (HashList.HashList.pairs.TryGetValue(parenthash, out parentname))
             {
                 parentname = parentname.Substring(3, parentname.IndexOf('.') - 3);
             }
@@ -319,7 +319,7 @@ namespace KH2FM_Toolkit
                         Console.WriteLine("\nEXTRACTING THE FILE!");
                         Console.WriteLine("\nGetting the name...");
                         string fname2;
-                        HashPairs.pairs.TryGetValue(file.Hash, out fname2);
+                        HashList.pairs.TryGetValue(file.Hash, out fname2);
                         Console.WriteLine("\nCreating directory...");
                         try
                         {
@@ -390,7 +390,7 @@ namespace KH2FM_Toolkit
                         {
                             patch.IsNew = false;
                             string fname;
-                            if (!HashPairs.pairs.TryGetValue(hash, out fname))
+                            if (!HashList.HashList.pairs.TryGetValue(hash, out fname))
                             {
                                 fname = String.Format("@noname/{0:X8}.bin", hash);
                             }
@@ -431,10 +431,10 @@ namespace KH2FM_Toolkit
             }
         }
 
-        /// <param name="idx">Closed internally.</param>
-        /// <param name="img">Closed internally.</param>
-        /// <param name="imgd">File descriptor of the patch iirc</param>
-        /// <param name="niso">ISOCopyWriter</param>
+        /// <param name="idx">Stream of the idx inside the iso.</param>
+        /// <param name="img">Stream of the img inside the iso.</param>
+        /// <param name="imgd">File descriptor of the img file.</param>
+        /// <param name="niso">New ISO.</param>
         /// <param name="IsOVL">Bool which define if the OVL should be patched</param>
         private static MemoryStream PatchIDX(Stream idx, Stream img, FileDescriptor imgd, ISOCopyWriter niso,
             bool IsOVL = false)
@@ -453,7 +453,8 @@ namespace KH2FM_Toolkit
                 return idxms;
             }
         }
-
+        /// <param name="isofile">Original ISO</param>
+        /// <param name="nisofile">New ISO file</param>
         private static void PatchISO(Stream isofile, Stream nisofile)
         {
             using (var iso = new ISOFileReader(isofile))
@@ -682,7 +683,7 @@ namespace KH2FM_Toolkit
                     ? "\n\nThis tool will calculate the hash of your iso for verify if it's a good dump of KH2(FM) or not.\n\n"
                     : "\n\nThis tool is able to patch the game Kingdom Hearts 2(Final Mix).\nHe can modify iso files, like the elf and internal files,\nwich are stored inside KH2.IMG and OVL.IMG\nThis tool is recreating too new hashes into the idx files for avoid\na corrupted game. He can add some files too.\n\n");
             }
-            HashPairs.loadHashPairs(printInfo: true);
+            HashList.HashList.loadHashPairs(printInfo: true);
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write("\nPress enter to run using the file:");
             Console.ResetColor();
@@ -807,18 +808,18 @@ namespace KH2FM_Toolkit
                     {
                         if (Patches.patches.Count == 0)
                         {
-                            WriteWarning("No patches specified, nothing to do!");
+                            WriteWarning("No patches loaded!");
                         }
                         else
                         {
-                            isoname = Path.ChangeExtension(isoname, ".new.iso");
+                            isoname = Path.ChangeExtension(isoname, ".NEW.ISO");
                             try
                             {
                                 using (
-                                    FileStream niso = File.Open(isoname, FileMode.Create, FileAccess.ReadWrite,
+                                    FileStream NewISO = File.Open(isoname, FileMode.Create, FileAccess.ReadWrite,
                                         FileShare.None))
                                 {
-                                    PatchISO(iso, niso);
+                                    PatchISO(iso, NewISO);
                                 }
                             }
                             catch (Exception)
@@ -838,7 +839,7 @@ namespace KH2FM_Toolkit
             catch (Exception e)
             {
                 WriteWarning(
-                    "An error has occured! Please report this, including the following information:\n{1}: {0}\n{2}",
+                    "An error has occured when trying to open your iso:\n{1}: {0}\n{2}",
                     e.Message, e.GetType().FullName, e.StackTrace);
             }
             Patches.Dispose();

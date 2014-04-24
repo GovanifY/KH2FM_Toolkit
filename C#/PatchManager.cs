@@ -183,7 +183,7 @@ namespace KH2FM_Toolkit
                 catch (Exception e)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Error reading patch header: {0}: {1}\r\nAttempting to continue files...",
+                    Console.WriteLine("Error reading kh2patch header: {0}: {1}\r\nAttempting to continue files...",
                         e.GetType(), e.Message);
                     Console.ResetColor();
                 }
@@ -218,7 +218,7 @@ namespace KH2FM_Toolkit
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine("The file {0} has been included multiple times. Using the one from {1}.",
-                            HashPairs.NameFromHash(nPatch.Hash), patchname);
+                            HashList.HashList.NameFromHash(nPatch.Hash), patchname);
                         patches[nPatch.Hash].Dispose();
                         patches.Remove(nPatch.Hash);
                         Console.ResetColor();

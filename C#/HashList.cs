@@ -10,7 +10,7 @@ using KH2FM_Toolkit.Properties;
 
 namespace HashList
 {
-    public sealed class HashPairs
+    public sealed class HashList
     {
         public static Dictionary<UInt32, string> pairs;
         public static string version { get; private set; }
@@ -228,7 +228,7 @@ namespace HashList
     {
         public static string FileName(this IDXFile.IDXEntry entry)
         {
-            return HashPairs.NameFromHash(entry.Hash);
+            return HashList.NameFromHash(entry.Hash);
         }
     }
 }
