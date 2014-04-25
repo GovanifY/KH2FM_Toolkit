@@ -50,10 +50,18 @@ namespace KH2FM_Toolkit
                 buffer[++i] ^= v84[(--l & 7)];
             }
         }
-
         public static void GYXor(byte[] buffer)
         {
             byte[] v84 = {0x47, 0x59, 0x4b, 0x35, 0x9a, 0x7f, 0x0e, 0x2a};
+            int i = -1, l = buffer.Length;
+            while (l > 0)
+            {
+                buffer[++i] ^= v84[(--l & 7)];
+            }
+        }
+        public static void NGYXor(byte[] buffer)
+        {
+            byte[] v84 = { 164, 28, 107, 129, 48, 13, 35, 91, 92, 58, 167, 222, 219, 244, 115, 90, 160, 194, 112, 209, 40, 72, 170, 114, 98, 181, 154, 124, 124, 32, 224, 199, 34, 32, 114, 204, 38, 198, 188, 128, 45, 120, 181, 149, 219, 55, 33, 116, 6, 17, 181, 125, 239, 137, 72, 215, 1, 167, 110, 208, 110, 238, 124, 204 };
             int i = -1, l = buffer.Length;
             while (l > 0)
             {

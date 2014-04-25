@@ -27,6 +27,7 @@ namespace KH2FM_Toolkit
 
         private static readonly PatchManager Patches = new PatchManager();
         private static bool _advanced;
+        private static bool k2e;
 
         private static DateTime Builddate { get; set; }
 
@@ -120,21 +121,9 @@ namespace KH2FM_Toolkit
                     }
                     if (_advanced)
                     {
-                        if (name == "KH2")
-                        {
-                            Console.WriteLine("-----------File {0,4}/{1}, using {2}.IDX\n", ++i, total, name);
-                        }
-                        else
-                        {
-                            if (name == "OVL")
-                            {
-                                Console.WriteLine("-----------File {0,4}/{1}, using {2}.IDX\n", ++i, total, name);
-                            }
-                            else
-                            {
-                                Console.WriteLine("-----------File {0,4}/{1}, using 000{2}.idx\n", ++i, total, name);
-                            }
-                        }
+                        if (name == "KH2"){Console.WriteLine("-----------File {0,4}/{1}, using {2}.IDX\n", ++i, total, name);}else
+                        {if (name == "OVL"){Console.WriteLine("-----------File {0,4}/{1}, using {2}.IDX\n", ++i, total, name);}
+                        else{Console.WriteLine("-----------File {0,4}/{1}, using 000{2}.idx\n", ++i, total, name);}}
                         Console.WriteLine("Dual Hash flag: {0}", entry.IsDualHash); //Always false but anyways
                         Console.WriteLine("Hashed filename: {0}\nHashAlt: {1}", entry.Hash, entry.HashAlt);
                         Console.WriteLine("Compression flags: {0}", entry.IsCompressed);
@@ -163,6 +152,10 @@ namespace KH2FM_Toolkit
             }
         }
 
+        private static void KH2PatchExtractor(Stream sidx)
+        {
+            return;
+        }
         private static void ExtractISO(Stream isofile, string tfolder = "export/")
         {
             using (var iso = new ISOFileReader(isofile))
@@ -598,6 +591,9 @@ namespace KH2FM_Toolkit
                     case "-log":
                         log = true;
                         break;
+                    case "-kh2patchextractor":
+                        k2e = true;
+                        break;
                     case "-verifyiso":
                         verify = true;
                         break;
@@ -806,6 +802,10 @@ namespace KH2FM_Toolkit
                     }
                     else
                     {
+                        if (k2e) { KH2PatchExtractor(iso);}
+                        else
+                        {
+                            
                         if (Patches.patches.Count == 0)
                         {
                             WriteWarning("No patches loaded!");
@@ -831,6 +831,7 @@ namespace KH2FM_Toolkit
                         }
                     }
                 }
+            }
             }
             catch (FileNotFoundException e)
             {
