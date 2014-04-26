@@ -45,7 +45,7 @@ Thanks to xeeynamo that programmed his tools on C and for translated the game on
 Changelog:
 [2.6.1.0]
 *New cleanup of the code
-*New features added (-verifyiso & -log(still need to modify it)
+*New features added (-verifyiso & -log(still need to modify it))
 *New debug features added
 *The tool got now a x64 build
 *Changed the patch file format
