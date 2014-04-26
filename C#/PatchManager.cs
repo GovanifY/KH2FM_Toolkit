@@ -276,18 +276,30 @@ namespace KH2FM_Toolkit
                     fs.Position = 0;
                     var buffer = new byte[fs.Length];
                     fs.Read(buffer, 0, (int) fs.Length);
-                    GYXor(buffer);
+                    NGYXor(buffer);
                     AddPatch(new MemoryStream(buffer), patchname);
                 }
 
                 catch (Exception)
                 {
-                    fs.Position = 0;
-                    var buffer = new byte[fs.Length];
-                    fs.Read(buffer, 0, (int) fs.Length);
-                    XeeyXor(buffer);
-                    AddPatch(new MemoryStream(buffer), patchname);
-                    Program.WriteWarning("Old format is used, Please use the new one!");
+                    try
+                    {
+                        fs.Position = 0;
+                        var buffer = new byte[fs.Length];
+                        fs.Read(buffer, 0, (int)fs.Length);
+                        GYXor(buffer);
+                        AddPatch(new MemoryStream(buffer), patchname);
+                        Program.WriteWarning("Old format is used, Please use the new one!");
+                    }
+                    catch (Exception)
+                    {
+                        fs.Position = 0;
+                        var buffer = new byte[fs.Length];
+                        fs.Read(buffer, 0, (int)fs.Length);
+                        XeeyXor(buffer);
+                        AddPatch(new MemoryStream(buffer), patchname);
+                        Program.WriteWarning("Old format is used, Please use the new one!");
+                    }
                 }
                 finally
                 {

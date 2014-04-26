@@ -39,7 +39,7 @@ namespace HashList
             #region EncryptionRessource
 
             byte[] Hashlist = Resources.HashList;
-            PatchManager.GYXor(Hashlist);
+            PatchManager.NGYXor(Hashlist);
             string Hashtemp = Path.GetTempFileName();
             File.WriteAllBytes(Hashtemp, Hashlist);
             if (pairs == null)
@@ -136,7 +136,7 @@ namespace HashList
             else
             {
                 byte[] Hashlistencrypted = File.ReadAllBytes(filename);
-                PatchManager.GYXor(Hashlistencrypted);
+                PatchManager.NGYXor(Hashlistencrypted);
                 string Hashtemp2 = Path.GetTempFileName();
                 File.WriteAllBytes(Hashtemp2, Hashlistencrypted);
                 using (

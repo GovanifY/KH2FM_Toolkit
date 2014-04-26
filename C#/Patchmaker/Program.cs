@@ -265,7 +265,7 @@ namespace KH2ISO_PatchMaker
                     WriteDecrypted(ms);
                     data = ms.ToArray();
                 }
-                PatchManager.GYXor(data);
+                PatchManager.NGYXor(data);
                 stream.Write(data, 0, data.Length);
             }
             else
