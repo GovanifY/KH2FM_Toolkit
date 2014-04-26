@@ -16,6 +16,7 @@ Options:
 [-batch]: Skipping all the "Console.Readline();"(when you need to press enter)and closing automatically the soft at the end.
 [-patchmaker]: Launching the patchmaker.
 [-advancedinfo]: To use after -extractor. This option will show advanced info about files extracted.
+[-verifyiso]: Launch the SHA1 verifier. It will calculate the SHA1 hash of your iso for verify you have a good dump.
 
 
 Patchmaker Options(to put after the option -patchmaker):
@@ -42,6 +43,12 @@ When you want to write the patch file, just leave blank a filename, it will crea
 Thanks to xeeynamo that programmed his tools on C and for translated the game on english. Love you <3
 
 Changelog:
+[2.6.1.0]
+*New cleanup of the code
+*New features added (-verifyiso & -log(still need to modify it)
+*New debug features added
+*The tool got now a x64 build
+*Changed the patch file format
 [2.6.0.0]
 *Full cleanup of the code
 *Extraction process totally recreated
@@ -56,7 +63,7 @@ Changelog:
 
 
 
------Copyright 04/16/2014 © GovanifY
+-----Copyright 04/26/2014 © GovanifY
 
                                                                                                                                                 
                                                                                                                                                 
