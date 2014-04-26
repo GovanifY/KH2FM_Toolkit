@@ -17,6 +17,7 @@ Options:
 [-patchmaker]: Launching the patchmaker.
 [-advancedinfo]: To use after -extractor. This option will show advanced info about files extracted.
 [-verifyiso]: Launch the SHA1 verifier. It will calculate the SHA1 hash of your iso for verify you have a good dump.
+[-log]: Will redirect the text to a file /!\ Cannot mirror the text to the console & a file for now, you'll have a black screen but the soft will work /!\
 
 
 Patchmaker Options(to put after the option -patchmaker):
