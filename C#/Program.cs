@@ -312,7 +312,7 @@ namespace KH2FM_Toolkit
                         Console.WriteLine("\nEXTRACTING THE FILE!");
                         Console.WriteLine("\nGetting the name...");
                         string fname2;
-                        HashList.pairs.TryGetValue(file.Hash, out fname2);
+                        HashList.HashList.pairs.TryGetValue(file.Hash, out fname2);
                         Console.WriteLine("\nCreating directory...");
                         try
                         {
