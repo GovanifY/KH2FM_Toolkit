@@ -45,6 +45,11 @@ When you want to write the patch file, just leave blank a filename, it will crea
 Thanks to xeeynamo that programmed his tools on C and for translated the game on english. Love you <3
 
 Changelog:
+[2.7.0.0]
+*Normalization of the classes for be usefull on another toolkits
+*Final modification of the patch file format
+*Major bug correction due to the new patch file format
+*license is from now builted-in the soft
 [2.6.1.0]
 *New cleanup of the code
 *New features added (-verifyiso & -log(still need to modify it))
