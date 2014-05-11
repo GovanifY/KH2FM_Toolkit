@@ -11,6 +11,7 @@ You can change the name of the iso to modify simply by drag 'n drop him to the s
 Options:
 
 [-help]: Extract this Readme
+[-license]: Extract the license you agree by using this soft
 [-extractor]: Launch the extractor. Instead of patching the game, the toolkit will extract him
 [-exit]: Just stop the soft. Nothing else(Making the "return;" action")
 [-batch]: Skipping all the "Console.Readline();"(when you need to press enter)and closing automatically the soft at the end.

@@ -603,6 +603,12 @@ namespace KH2FM_Toolkit
                         Console.Write("Help extracted as a Readme\nPress enter to leave the software...");
                         Console.Read();
                         return;
+                    case "-license":
+                        byte[] buffer2 = Encoding.ASCII.GetBytes(Resources.LICENSE);
+                        File.WriteAllBytes("Readme.txt", buffer2);
+                        Console.Write("License extracted as the file LICENSE.TXT\nPress enter to leave the software...");
+                        Console.Read();
+                        return;
                     case "-patchmaker":
                         KH2ISO_PatchMaker.Program.Mainp(args);
                         break;
@@ -665,7 +671,7 @@ namespace KH2FM_Toolkit
 #endif
 
             Console.ForegroundColor = ConsoleColor.DarkMagenta;
-            Console.Write("\nProgrammed by {0}\nhttp://www.govanify.blogspot.fr\nhttp://www.govanify.x10host.com",
+            Console.Write("\nProgrammed by {0}\nhttp://www.govanify.blogspot.fr\nhttp://www.govanify.x10host.com\nSoftware under GPL 2 license, for more info, use the command -license",
                 program.CompanyName);
             Console.ForegroundColor = ConsoleColor.Gray;
             if (extract)
