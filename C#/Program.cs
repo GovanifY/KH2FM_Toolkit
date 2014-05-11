@@ -605,7 +605,7 @@ namespace KH2FM_Toolkit
                         return;
                     case "-license":
                         byte[] buffer2 = Encoding.ASCII.GetBytes(Resources.LICENSE);
-                        File.WriteAllBytes("Readme.txt", buffer2);
+                        File.WriteAllBytes("LICENSE.TXT", buffer2);
                         Console.Write("License extracted as the file LICENSE.TXT\nPress enter to leave the software...");
                         Console.Read();
                         return;
