@@ -8,7 +8,7 @@ using HashList;
 
 namespace KH2FM_Toolkit
 {
-    /* KH2 Patch File Format
+/* KH2 Patch File Format
  * 0    UInt32  Magic 0x5032484B "KH2P"
  * 4    UInt32  0x10000000 + Author Length
  * 8    UInt32  0x10000000 + Author Length + 0x10000000 + Changelog Length + 40000000 + Credits Length + Other Info Length
@@ -42,6 +42,7 @@ namespace KH2FM_Toolkit
  *          UInt32  Parent Hash (KH2, OVL, etc...)
  *          UInt32  0x00000000
  *          UInt32  If file is compressed 0x01000000, otherwise 0x00000000
+ *          UInt32  If file should be added if he's not in the game 0x01000000, otherwise 0x00000000
  *          UInt32(x15) 0x00000000(padding)
  *          byte*?  Raw file data
  * 

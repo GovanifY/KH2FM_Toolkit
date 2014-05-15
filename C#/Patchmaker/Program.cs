@@ -45,6 +45,7 @@ using ISOTP = KH2FM_Toolkit.Program;
  *          UInt32  Parent Hash (KH2, OVL, etc...)
  *          UInt32  0x00000000
  *          UInt32  If file is compressed 0x01000000, otherwise 0x00000000
+ *          UInt32  If file should be added if he's not in the game 0x01000000, otherwise 0x00000000
  *          UInt32(x15) 0x00000000(padding)
  *          byte*?  Raw file data
  * 
