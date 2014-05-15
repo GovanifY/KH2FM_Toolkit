@@ -8,6 +8,56 @@ using HashList;
 
 namespace KH2FM_Toolkit
 {
+    /* KH2 Patch File Format
+ * 0    UInt32  Magic 0x5032484B "KH2P"
+ * 4    UInt32  0x10000000 + Author Length
+ * 8    UInt32  0x10000000 + Author Length + 0x10000000 + Changelog Length + 40000000 + Credits Length + Other Info Length
+ * 12   UInt32  Version number of the patch
+ * 13   string  Author
+ * ?    UInt32  0x0C000000
+ * ?    UInt32  0x10000000 + Changelog Length
+ * ?    UInt32  0x10000000 + Changelog Length + 40000000 + Credits Length
+ * ?    UInt32  Number of lines of the changelog 
+ *   
+ *      for each changelog lines:
+ *          UInt32  "i" 0x04000000
+ *          Increase i by the length of the next line
+ *          string Changelog line
+ *          
+ * ?    UInt32  Number of lines of the credits
+ * 
+ *      for each changelog lines:
+ *          UInt32  "i" 0x04000000
+ *          Increase i by the length of the next line
+ *          string Changelog line
+ *          
+ * ?    string  Other infos
+ * ?    UInt32  Number of files
+ *      i = (Position of the stream of the patch + Number of files) *92
+ *       for each non-relinking file:
+ *          UInt32  hashed filename
+ *          UInt32  i + Compressed size of the file
+ *          UInt32  Compressed size of the file
+ *          UInt32  Length of the uncompressed file
+ *          UInt32  Parent Hash (KH2, OVL, etc...)
+ *          UInt32  0x00000000
+ *          UInt32  If file is compressed 0x01000000, otherwise 0x00000000
+ *          UInt32(x15) 0x00000000(padding)
+ *          byte*?  Raw file data
+ * 
+ *      for each relinked file:
+ *          UInt32  0x00000000
+ *          UInt32  0x00000000
+ *          UInt32  0x00000000
+ *          UInt32 Hash of the file
+ *          UInt32 Hash of the filename to relink to
+ *          UInt32  0x00000000
+ * 
+ * 
+ * Notes:
+ * All files which needs to be compressed are already compressed into the patch file
+ * Relinking a file will copy the content of the original file to the new file
+ */
     public sealed class PatchManager : IDisposable
     {
         private readonly List<Stream> patchms = new List<Stream>();
