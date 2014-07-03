@@ -34,7 +34,7 @@ Patchmaker Options(to put after the option -patchmaker):
 [-output something.kh2patch]: Set the output file to something.kh2patch
 
 Options asked:
-[Relink to this filename:]: This will relink your file to an idx. Should be automatic now, leave blank.
+[Relink to this filename:]: This will copy the content of the file chosen to your file.
 [Compress this file?]: This will compress or no the file using internal compression of KH2(FM).
 [Parent compressed file]: Just choose where to modify the file: in KH2, OVL, or the ISO.
 [Should this file be added if he's not in the game?]: If the file don't exist, will try to create a new entry for this file.
@@ -45,6 +45,8 @@ When you want to write the patch file, just leave blank a filename, it will crea
 Thanks to xeeynamo that programmed his tools on C and for translated the game on english. Love you <3
 
 Changelog:
+[2.8.0.0]
+*Huge and major HashList update
 [2.7.0.0]
 *Normalization of the classes for be usefull on another toolkits
 *Final modification of the patch file format

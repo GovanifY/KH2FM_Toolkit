@@ -121,9 +121,21 @@ namespace KH2FM_Toolkit
                     }
                     if (_advanced)
                     {
-                        if (name == "KH2"){Console.WriteLine("-----------File {0,4}/{1}, using {2}.IDX\n", ++i, total, name);}else
-                        {if (name == "OVL"){Console.WriteLine("-----------File {0,4}/{1}, using {2}.IDX\n", ++i, total, name);}
-                        else{Console.WriteLine("-----------File {0,4}/{1}, using 000{2}.idx\n", ++i, total, name);}}
+                        if (name == "KH2")
+                        {
+                            Console.WriteLine("-----------File {0,4}/{1}, using {2}.IDX\n", ++i, total, name);
+                        }
+                        else
+                        {
+                            if (name == "OVL")
+                            {
+                                Console.WriteLine("-----------File {0,4}/{1}, using {2}.IDX\n", ++i, total, name);
+                            }
+                            else
+                            {
+                                Console.WriteLine("-----------File {0,4}/{1}, using 000{2}.idx\n", ++i, total, name);
+                            }
+                        }
                         Console.WriteLine("Dual Hash flag: {0}", entry.IsDualHash); //Always false but anyways
                         Console.WriteLine("Hashed filename: {0}\nHashAlt: {1}", entry.Hash, entry.HashAlt);
                         Console.WriteLine("Compression flags: {0}", entry.IsCompressed);
@@ -152,10 +164,134 @@ namespace KH2FM_Toolkit
             }
         }
 
-        private static void KH2PatchExtractor(Stream sidx)
+        private static void KH2PatchExtractor(Stream patch)
         {
-            return;
+            using (var br = new BinaryStream(patch, Encoding.ASCII, leaveOpen: true))
+            {
+                if (br.ReadUInt32() != 0x5032484b)
+                {
+                    br.Close();
+                    br.Close();
+                    throw new InvalidDataException("Invalid KH2Patch file!");
+                }
+                uint oaAuther = br.ReadUInt32(),
+                    obFileCount = br.ReadUInt32(),
+                    num = br.ReadUInt32();
+                string patchname = "";
+                patchname = Path.GetFileName(patchname);
+                try
+                {
+                    string author = br.ReadCString();
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    Console.WriteLine("Loading patch {0} version {1} by {2}", patchname, num, author);
+                    Console.ResetColor();
+                    br.Seek(oaAuther, SeekOrigin.Begin);
+                    uint os1 = br.ReadUInt32(),
+                        os2 = br.ReadUInt32(),
+                        os3 = br.ReadUInt32();
+                    br.Seek(oaAuther + os1, SeekOrigin.Begin);
+                    num = br.ReadUInt32();
+                    if (num > 0)
+                    {
+                        br.Seek(num*4, SeekOrigin.Current);
+                        Console.WriteLine("Changelog:");
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        while (num > 0)
+                        {
+                            --num;
+                            Console.WriteLine(" * {0}", br.ReadCString());
+                        }
+                    }
+                    br.Seek(oaAuther + os2, SeekOrigin.Begin);
+                    num = br.ReadUInt32();
+                    if (num > 0)
+                    {
+                        br.Seek(num*4, SeekOrigin.Current);
+                        Console.ResetColor();
+                        Console.WriteLine("Credits:");
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        while (num > 0)
+                        {
+                            --num;
+                            Console.WriteLine(" * {0}", br.ReadCString());
+                        }
+                        Console.ResetColor();
+                    }
+                    br.Seek(oaAuther + os3, SeekOrigin.Begin);
+                    author = br.ReadCString();
+                    if (author.Length != 0)
+                    {
+                        Console.WriteLine("Other information:\r\n");
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("{0}", author);
+                    }
+                    Console.ResetColor();
+                }
+                catch (Exception e)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Error reading kh2patch header: {0}: {1}\r\nAttempting to continue files...",
+                        e.GetType(), e.Message);
+                    Console.ResetColor();
+                }
+                Console.WriteLine("");
+                br.Seek(obFileCount, SeekOrigin.Begin);
+                num = br.ReadUInt32();
+                while (num > 0)
+                {
+                    --num;
+                    var nPatch = new PatchManager.Patch();
+                    nPatch.Hash = br.ReadUInt32();
+                    oaAuther = br.ReadUInt32();
+                    nPatch.CompressedSize = br.ReadUInt32();
+                    nPatch.UncompressedSize = br.ReadUInt32();
+                    nPatch.Parent = br.ReadUInt32();
+                    nPatch.Relink = br.ReadUInt32();
+                    nPatch.Compressed = br.ReadUInt32() != 0;
+                    nPatch.IsNew = br.ReadUInt32() == 1; //Custom
+                    if (!nPatch.IsRelink)
+                    {
+                        if (nPatch.CompressedSize != 0)
+                        {
+                            nPatch.Stream = new Substream(patch, oaAuther, nPatch.CompressedSize);
+                            string fname2;
+                            HashList.HashList.pairs.TryGetValue(nPatch.Hash, out fname2);
+                            Console.Write("Extracting {0}...", fname2);
+                            try
+                            {
+                                Directory.CreateDirectory(Path.GetDirectoryName(fname2));
+                            }
+                            catch
+                            {
+                            }
+                            FileStream fileStream = File.Create(fname2);
+                            nPatch.Stream.Position = 0;
+                            var buffer = new byte[nPatch.Stream.Length];
+                            for (int totalBytesCopied = 0; totalBytesCopied < nPatch.Stream.Length;)
+                                totalBytesCopied += nPatch.Stream.Read(buffer, totalBytesCopied,
+                                    Convert.ToInt32(nPatch.Stream.Length) - totalBytesCopied);
+                            byte[] file2;
+                            if (nPatch.Compressed)
+                            {
+                                file2 = KH2Compressor.decompress(buffer, nPatch.UncompressedSize);
+                            }
+                            else
+                            {
+                                file2 = buffer;
+                            }
+                            Stream decompressed = new MemoryStream(file2);
+                            decompressed.CopyTo(fileStream);
+                            Console.WriteLine("Done!");
+                        }
+                        else
+                        {
+                            throw new InvalidDataException("File length is 0, but not relinking.");
+                        }
+                    }
+                }
+            }
         }
+
         private static void ExtractISO(Stream isofile, string tfolder = "export/")
         {
             using (var iso = new ISOFileReader(isofile))
@@ -446,6 +582,7 @@ namespace KH2FM_Toolkit
                 return idxms;
             }
         }
+
         /// <param name="isofile">Original ISO</param>
         /// <param name="nisofile">New ISO file</param>
         private static void PatchISO(Stream isofile, Stream nisofile)
@@ -592,6 +729,7 @@ namespace KH2FM_Toolkit
                         log = true;
                         break;
                     case "-kh2patchextractor":
+                    case "-k2e":
                         k2e = true;
                         break;
                     case "-verifyiso":
@@ -615,13 +753,20 @@ namespace KH2FM_Toolkit
                     default:
                         if (File.Exists(arg))
                         {
-                            if (isoname == null && arg.EndsWith(".iso", StringComparison.InvariantCultureIgnoreCase))
+                                                        if (k2e)
+                            {
+                                if (isoname == null && arg.EndsWith(".kh2patch", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    isoname = arg;
+                                }
+                            else if (isoname == null && arg.EndsWith(".iso", StringComparison.InvariantCultureIgnoreCase))
                             {
                                 isoname = arg;
                             }
                             else if (arg.EndsWith(".kh2patch", StringComparison.InvariantCultureIgnoreCase))
                             {
                                 Patches.AddPatch(arg);
+                            }
                             }
                         }
 
@@ -632,6 +777,7 @@ namespace KH2FM_Toolkit
             #endregion Arguments
 
             #region Description
+
             if (log)
             {
                 var filestream = new FileStream("log.log", FileMode.Create);
@@ -647,9 +793,15 @@ namespace KH2FM_Toolkit
             Console.ForegroundColor = ConsoleColor.Gray;
             Builddate = RetrieveLinkerTimestamp();
             Console.Write("{0}\nBuild Date: {2}\nVersion {1}", program.ProductName, program.FileVersion, Builddate);
-            string Platform;         
-            if (IntPtr.Size == 8) {Platform = "x64";}
-            else {Platform = "x86";}
+            string Platform;
+            if (IntPtr.Size == 8)
+            {
+                Platform = "x64";
+            }
+            else
+            {
+                Platform = "x86";
+            }
             Console.Write("\n{0} build", Platform);
             Console.ResetColor();
 #if DEBUG
@@ -671,7 +823,8 @@ namespace KH2FM_Toolkit
 #endif
 
             Console.ForegroundColor = ConsoleColor.DarkMagenta;
-            Console.Write("\nProgrammed by {0}\nhttp://www.govanify.blogspot.fr\nhttp://www.govanify.x10host.com\nSoftware under GPL 2 license, for more info, use the command -license",
+            Console.Write(
+                "\nProgrammed by {0}\nhttp://www.govanify.blogspot.fr\nhttp://www.govanify.x10host.com\nSoftware under GPL 2 license, for more info, use the command -license",
                 program.CompanyName);
             Console.ForegroundColor = ConsoleColor.Gray;
             if (extract)
@@ -681,9 +834,17 @@ namespace KH2FM_Toolkit
             }
             else
             {
-                Console.Write(verify
-                    ? "\n\nThis tool will calculate the hash of your iso for verify if it's a good dump of KH2(FM) or not.\n\n"
-                    : "\n\nThis tool is able to patch the game Kingdom Hearts 2(Final Mix).\nHe can modify iso files, like the elf and internal files,\nwich are stored inside KH2.IMG and OVL.IMG\nThis tool is recreating too new hashes into the idx files for avoid\na corrupted game. He can add some files too.\n\n");
+                if (k2e)
+                {
+                    Console.Write(
+                        "\n\nThis tool is able to extract kh2patch files, it will require an authorization\nto access to the tool though\n");
+                }
+                if (!k2e)
+                {
+                    Console.Write(verify
+                        ? "\n\nThis tool will calculate the hash of your iso for verify if it's a good dump of KH2(FM) or not.\n\n"
+                        : "\n\nThis tool is able to patch the game Kingdom Hearts 2(Final Mix).\nHe can modify iso files, like the elf and internal files,\nwich are stored inside KH2.IMG and OVL.IMG\nThis tool is recreating too new hashes into the idx files for avoid\na corrupted game. He can add some files too.\n\n");
+                }
             }
             HashList.HashList.loadHashPairs(printInfo: true);
             Console.ForegroundColor = ConsoleColor.Green;
@@ -808,36 +969,93 @@ namespace KH2FM_Toolkit
                     }
                     else
                     {
-                        if (k2e) { KH2PatchExtractor(iso);}
-                        else
+                        if (k2e)
                         {
-                            
-                        if (Patches.patches.Count == 0)
-                        {
-                            WriteWarning("No patches loaded!");
+                            try
+                            {
+                                FileStream fs = iso;
+                                if (fs.ReadByte() == 0x4B && fs.ReadByte() == 0x48 && fs.ReadByte() == 0x32 &&
+                                    fs.ReadByte() == 0x50)
+                                {
+                                    fs.Position = 0;
+                                    KH2PatchExtractor(fs);
+                                    return;
+                                }
+                                if (fs.Length > int.MaxValue)
+                                {
+                                    throw new OutOfMemoryException("File too large");
+                                }
+
+                                try
+                                {
+                                    fs.Position = 0;
+                                    var buffer = new byte[fs.Length];
+                                    fs.Read(buffer, 0, (int) fs.Length);
+                                    PatchManager.NGYXor(buffer);
+                                    KH2PatchExtractor(new MemoryStream(buffer));
+                                }
+
+                                catch (Exception)
+                                {
+                                    try
+                                    {
+                                        fs.Position = 0;
+                                        var buffer = new byte[fs.Length];
+                                        fs.Read(buffer, 0, (int) fs.Length);
+                                        PatchManager.GYXor(buffer);
+                                        KH2PatchExtractor(new MemoryStream(buffer));
+#if DEBUG
+                                        WriteWarning("Old format is used, Please use the new one!");
+#endif
+                                    }
+                                    catch (Exception)
+                                    {
+                                        fs.Position = 0;
+                                        var buffer = new byte[fs.Length];
+                                        fs.Read(buffer, 0, (int) fs.Length);
+                                        PatchManager.XeeyXor(buffer);
+                                        KH2PatchExtractor(new MemoryStream(buffer));
+                                        WriteWarning("Old format is used, Please use the new one!");
+                                    }
+                                }
+                                finally
+                                {
+                                    fs.Dispose();
+                                    fs = null;
+                                }
+                            }
+                            catch
+                            {
+                            }
                         }
                         else
                         {
-                            isoname = Path.ChangeExtension(isoname, ".NEW.ISO");
-                            try
+                            if (Patches.patches.Count == 0)
                             {
-                                using (
-                                    FileStream NewISO = File.Open(isoname, FileMode.Create, FileAccess.ReadWrite,
-                                        FileShare.None))
-                                {
-                                    PatchISO(iso, NewISO);
-                                }
+                                WriteWarning("No patches loaded!");
                             }
-                            catch (Exception)
+                            else
                             {
-                                //Delete the new "incomplete" iso
-                                File.Delete(isoname);
-                                throw;
+                                isoname = Path.ChangeExtension(isoname, ".NEW.ISO");
+                                try
+                                {
+                                    using (
+                                        FileStream NewISO = File.Open(isoname, FileMode.Create, FileAccess.ReadWrite,
+                                            FileShare.None))
+                                    {
+                                        PatchISO(iso, NewISO);
+                                    }
+                                }
+                                catch (Exception)
+                                {
+                                    //Delete the new "incomplete" iso
+                                    File.Delete(isoname);
+                                    throw;
+                                }
                             }
                         }
                     }
                 }
-            }
             }
             catch (FileNotFoundException e)
             {
