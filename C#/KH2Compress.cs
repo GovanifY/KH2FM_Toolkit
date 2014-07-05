@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 
 namespace KHCompress
 {
@@ -190,5 +191,4 @@ namespace KHCompress
         }
     }
 }
-
 #endif

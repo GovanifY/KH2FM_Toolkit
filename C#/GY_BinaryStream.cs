@@ -177,6 +177,14 @@ namespace GovanifY.Utility
         {
             return _stream.Position;
         }
+        /// <summary>Change the position of the Stream by the value given.</summary>
+        /// <param name="newpos">A value containing the new position wanted inside the Stream.</param>
+        /// <returns>The position with the current stream.</returns>
+        public long ChangePosition(int newpos)
+        {
+            _stream.Position = newpos;
+            return _stream.Position;
+        }
 
         #region Reading functions
 

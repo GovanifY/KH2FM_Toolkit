@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -164,6 +165,28 @@ namespace KH2FM_Toolkit
             }
         }
 
+        private static void KH2PATCHInternal(Substream KH2PFileStream, string fname2, bool Compressed, UInt32 UncompressedSize)
+        {
+            try {Directory.CreateDirectory(Path.GetDirectoryName(fname2)); }catch{}//Creating folder
+            FileStream fileStream = File.Create(fname2);
+            byte[] buffer = new byte[KH2PFileStream.Length];
+            byte[] buffer2 = new byte[UncompressedSize];
+            var file3 = new MemoryStream();
+           if (Compressed)
+            {
+                KH2PFileStream.CopyTo(file3);
+                buffer = file3.ToArray();
+                buffer2 = KH2Compressor.decompress(buffer, UncompressedSize); // Will crash if the byte array is equal to void.
+                file3 = new MemoryStream (buffer2);
+            }
+            else
+           {
+               KH2PFileStream.CopyTo(file3);
+           }
+            file3.CopyTo(fileStream);
+            Console.WriteLine("Done!");
+        }
+
         private static void KH2PatchExtractor(Stream patch)
         {
             using (var br = new BinaryStream(patch, Encoding.ASCII, leaveOpen: true))
@@ -240,56 +263,44 @@ namespace KH2FM_Toolkit
                 while (num > 0)
                 {
                     --num;
-                    var nPatch = new PatchManager.Patch();
-                    nPatch.Hash = br.ReadUInt32();
+                    uint Hash = br.ReadUInt32();
                     oaAuther = br.ReadUInt32();
-                    nPatch.CompressedSize = br.ReadUInt32();
-                    nPatch.UncompressedSize = br.ReadUInt32();
-                    nPatch.Parent = br.ReadUInt32();
-                    nPatch.Relink = br.ReadUInt32();
-                    nPatch.Compressed = br.ReadUInt32() != 0;
-                    nPatch.IsNew = br.ReadUInt32() == 1; //Custom
-                    if (!nPatch.IsRelink)
+                    uint CompressedSize = br.ReadUInt32();
+                    uint UncompressedSize = br.ReadUInt32();
+                    uint Parent = br.ReadUInt32();
+                    uint Relink = br.ReadUInt32();
+                    bool Compressed = br.ReadUInt32() != 0;
+                    bool IsNew = br.ReadUInt32() == 1; //Custom
+                    if (Relink == 0)
                     {
-                        if (nPatch.CompressedSize != 0)
+                        if (CompressedSize != 0)
                         {
-                            nPatch.Stream = new Substream(patch, oaAuther, nPatch.CompressedSize);
+
+                            var KH2PFileStream = new Substream(patch, oaAuther, CompressedSize);
                             string fname2;
-                            HashList.HashList.pairs.TryGetValue(nPatch.Hash, out fname2);
+                            HashList.HashList.pairs.TryGetValue(Hash, out fname2);
                             Console.Write("Extracting {0}...", fname2);
-                            try
-                            {
-                                Directory.CreateDirectory(Path.GetDirectoryName(fname2));
-                            }
-                            catch
-                            {
-                            }
-                            FileStream fileStream = File.Create(fname2);
-                            nPatch.Stream.Position = 0;
-                            var buffer = new byte[nPatch.Stream.Length];
-                            for (int totalBytesCopied = 0; totalBytesCopied < nPatch.Stream.Length;)
-                                totalBytesCopied += nPatch.Stream.Read(buffer, totalBytesCopied,
-                                    Convert.ToInt32(nPatch.Stream.Length) - totalBytesCopied);
-                            byte[] file2;
-                            if (nPatch.Compressed)
-                            {
-                                file2 = KH2Compressor.decompress(buffer, nPatch.UncompressedSize);
-                            }
-                            else
-                            {
-                                file2 = buffer;
-                            }
-                            Stream decompressed = new MemoryStream(file2);
-                            decompressed.CopyTo(fileStream);
-                            Console.WriteLine("Done!");
+                            var brpos = br.Tell();
+                            KH2PATCHInternal(KH2PFileStream, fname2, Compressed, UncompressedSize);
+                            br.ChangePosition((int)brpos); //Changing the original position of the BinaryReader for what's next
                         }
                         else
                         {
                             throw new InvalidDataException("File length is 0, but not relinking.");
                         }
                     }
+                    else
+                    {
+                        string fname3;
+                        if (!HashList.HashList.pairs.TryGetValue(Relink, out fname3))
+                        {
+                            fname3 = String.Format("@noname/{0:X8}.bin", Relink);
+                        }
+                        Console.WriteLine("File relinked to {0}, no need to extract", fname3);
+                    }
+                    br.Seek(60, SeekOrigin.Current);
                 }
-            }
+            }//End of br
         }
 
         private static void ExtractISO(Stream isofile, string tfolder = "export/")
@@ -753,20 +764,22 @@ namespace KH2FM_Toolkit
                     default:
                         if (File.Exists(arg))
                         {
-                                                        if (k2e)
+                            if (k2e)
                             {
-                                if (isoname == null && arg.EndsWith(".kh2patch", StringComparison.InvariantCultureIgnoreCase))
+                                if (isoname == null &&
+                                    arg.EndsWith(".kh2patch", StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     isoname = arg;
                                 }
-                            else if (isoname == null && arg.EndsWith(".iso", StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                isoname = arg;
-                            }
-                            else if (arg.EndsWith(".kh2patch", StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                Patches.AddPatch(arg);
-                            }
+                                else if (isoname == null &&
+                                         arg.EndsWith(".iso", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    isoname = arg;
+                                }
+                                else if (arg.EndsWith(".kh2patch", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    Patches.AddPatch(arg);
+                                }
                             }
                         }
 
@@ -1072,6 +1085,7 @@ namespace KH2FM_Toolkit
             {
                 Console.Write("\nPress enter to exit...");
                 Console.ReadLine();
+
             }
         }
     }
