@@ -1,4 +1,4 @@
-﻿// Ver 1.0.1
+﻿// Ver 1.0.2
 
 using System;
 using System.IO;

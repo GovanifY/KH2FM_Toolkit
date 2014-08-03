@@ -42,7 +42,7 @@ Options asked:
 When you want to write the patch file, just leave blank a filename, it will create him
 
 
-Thanks to xeeynamo that programmed his tools on C and for translated the game on english. Love you <3
+Thanks to Xeeynamo that programmed his tools on C and for translated the game on english. Love you <3
 
 Changelog:
 [2.8.0.0]

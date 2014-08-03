@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -165,25 +164,36 @@ namespace KH2FM_Toolkit
             }
         }
 
-        private static void KH2PATCHInternal(Substream KH2PFileStream, string fname2, bool Compressed, UInt32 UncompressedSize)
+        private static void KH2PATCHInternal(Substream KH2PFileStream, string fname2, bool Compressed,
+            UInt32 UncompressedSize)
         {
-            try {Directory.CreateDirectory(Path.GetDirectoryName(fname2)); }catch{}//Creating folder
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(fname2));
+            }
+            catch
+            {
+            } //Creating folder
             FileStream fileStream = File.Create(fname2);
-            byte[] buffer = new byte[KH2PFileStream.Length];
-            byte[] buffer2 = new byte[UncompressedSize];
+            var buffer = new byte[KH2PFileStream.Length];
+            var buffer2 = new byte[UncompressedSize];
             var file3 = new MemoryStream();
-           if (Compressed)
+            if (Compressed)
             {
                 KH2PFileStream.CopyTo(file3);
                 buffer = file3.ToArray();
-                buffer2 = KH2Compressor.decompress(buffer, UncompressedSize); // Will crash if the byte array is equal to void.
-                file3 = new MemoryStream (buffer2);
+                buffer2 = KH2Compressor.decompress(buffer, UncompressedSize);
+                    // Will crash if the byte array is equal to void.
+                file3 = new MemoryStream(buffer2);
             }
             else
-           {
-               KH2PFileStream.CopyTo(file3);
-           }
+            {
+                KH2PFileStream.CopyTo(file3);
+                buffer2 = file3.ToArray();
+                file3 = new MemoryStream(buffer2);
+            }
             file3.CopyTo(fileStream);
+            fileStream.Close();
             Console.WriteLine("Done!");
         }
 
@@ -217,12 +227,12 @@ namespace KH2FM_Toolkit
                     if (num > 0)
                     {
                         br.Seek(num*4, SeekOrigin.Current);
-                        Console.WriteLine("Changelog:");
+                        //Console.WriteLine("Changelog:");
                         Console.ForegroundColor = ConsoleColor.Green;
                         while (num > 0)
                         {
                             --num;
-                            Console.WriteLine(" * {0}", br.ReadCString());
+                            //Console.WriteLine(" * {0}", br.ReadCString());
                         }
                     }
                     br.Seek(oaAuther + os2, SeekOrigin.Begin);
@@ -231,12 +241,12 @@ namespace KH2FM_Toolkit
                     {
                         br.Seek(num*4, SeekOrigin.Current);
                         Console.ResetColor();
-                        Console.WriteLine("Credits:");
+                        //Console.WriteLine("Credits:");
                         Console.ForegroundColor = ConsoleColor.Green;
                         while (num > 0)
                         {
                             --num;
-                            Console.WriteLine(" * {0}", br.ReadCString());
+                            //Console.WriteLine(" * {0}", br.ReadCString());
                         }
                         Console.ResetColor();
                     }
@@ -244,9 +254,9 @@ namespace KH2FM_Toolkit
                     author = br.ReadCString();
                     if (author.Length != 0)
                     {
-                        Console.WriteLine("Other information:\r\n");
+                       // Console.WriteLine("Other information:\r\n");
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("{0}", author);
+                        //Console.WriteLine("{0}", author);
                     }
                     Console.ResetColor();
                 }
@@ -275,14 +285,14 @@ namespace KH2FM_Toolkit
                     {
                         if (CompressedSize != 0)
                         {
-
                             var KH2PFileStream = new Substream(patch, oaAuther, CompressedSize);
                             string fname2;
                             HashList.HashList.pairs.TryGetValue(Hash, out fname2);
                             Console.Write("Extracting {0}...", fname2);
-                            var brpos = br.Tell();
+                            long brpos = br.Tell();
                             KH2PATCHInternal(KH2PFileStream, fname2, Compressed, UncompressedSize);
-                            br.ChangePosition((int)brpos); //Changing the original position of the BinaryReader for what's next
+                            br.ChangePosition((int) brpos);
+                                //Changing the original position of the BinaryReader for what's next
                         }
                         else
                         {
@@ -300,7 +310,7 @@ namespace KH2FM_Toolkit
                     }
                     br.Seek(60, SeekOrigin.Current);
                 }
-            }//End of br
+            } //End of br
         }
 
         private static void ExtractISO(Stream isofile, string tfolder = "export/")
@@ -739,10 +749,12 @@ namespace KH2FM_Toolkit
                     case "-log":
                         log = true;
                         break;
+#if DEBUG
                     case "-kh2patchextractor":
                     case "-k2e":
                         k2e = true;
                         break;
+#endif
                     case "-verifyiso":
                         verify = true;
                         break;
@@ -771,21 +783,21 @@ namespace KH2FM_Toolkit
                                 {
                                     isoname = arg;
                                 }
-                                else if (isoname == null &&
-                                         arg.EndsWith(".iso", StringComparison.InvariantCultureIgnoreCase))
-                                {
-                                    isoname = arg;
-                                }
-                                else if (arg.EndsWith(".kh2patch", StringComparison.InvariantCultureIgnoreCase))
-                                {
-                                    Patches.AddPatch(arg);
-                                }
+                            }
+                            else if (isoname == null &&
+                                     arg.EndsWith(".iso", StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                isoname = arg;
+                            }
+                            else if (arg.EndsWith(".kh2patch", StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                Patches.AddPatch(arg);
                             }
                         }
 
                         break;
                 }
-            } //TODO patch after header
+            }
 
             #endregion Arguments
 
@@ -797,7 +809,7 @@ namespace KH2FM_Toolkit
                 var streamwriter = new StreamWriter(filestream) {AutoFlush = true};
                 Console.SetOut(streamwriter);
                 Console.SetError(streamwriter);
-                //TODO Redirect to a txt, but problem: make disappear the text on the console. Need to mirror the text
+                //TODO Redirect to a txt, but problem: make disappear the text on the console. Need to mirror the text OR make a complete log
             }
             if (isoname == null)
             {
@@ -828,11 +840,12 @@ namespace KH2FM_Toolkit
                                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Write("\nNODECOMPRESS edition: Decompress algo is returning the input.\n");
                 Console.ResetColor();
-#endif
+#else
 #if extract
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write("\nKH2PATCH EXTRACTOR edition: Extract the kh2patch when during process.\n");
-            Console.ResetColor();
+                                           Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("\nOLD EXTRACTING FEATURE, WARNING:NOT PATCHING CORRECTLY THE ISO\n");
+                Console.ResetColor();
+#endif
 #endif
 
             Console.ForegroundColor = ConsoleColor.DarkMagenta;
@@ -850,7 +863,7 @@ namespace KH2FM_Toolkit
                 if (k2e)
                 {
                     Console.Write(
-                        "\n\nThis tool is able to extract kh2patch files, it will require an authorization\nto access to the tool though\n");
+                        "\n\nThis tool is able to extract kh2patch files, using all formats known for now.\n Please use this tool only if you losted your original files!\n\n");
                 }
                 if (!k2e)
                 {
@@ -984,8 +997,10 @@ namespace KH2FM_Toolkit
                     {
                         if (k2e)
                         {
+           #region Loading kh2patch extractor, decryption function
                             try
                             {
+                                Console.WriteLine("Loading the patch, please wait...");
                                 FileStream fs = iso;
                                 if (fs.ReadByte() == 0x4B && fs.ReadByte() == 0x48 && fs.ReadByte() == 0x32 &&
                                     fs.ReadByte() == 0x50)
@@ -1023,12 +1038,16 @@ namespace KH2FM_Toolkit
                                     }
                                     catch (Exception)
                                     {
-                                        fs.Position = 0;
-                                        var buffer = new byte[fs.Length];
-                                        fs.Read(buffer, 0, (int) fs.Length);
-                                        PatchManager.XeeyXor(buffer);
-                                        KH2PatchExtractor(new MemoryStream(buffer));
-                                        WriteWarning("Old format is used, Please use the new one!");
+                                        try
+                                        {
+                                            fs.Position = 0;
+                                            var buffer = new byte[fs.Length];
+                                            fs.Read(buffer, 0, (int)fs.Length);
+                                            PatchManager.XeeyXor(buffer);
+                                            WriteWarning("Old format is used, Please use the new one!");
+                                            KH2PatchExtractor(new MemoryStream(buffer));
+                                        }
+                                        catch (Exception e) { Console.WriteLine("An error happened when trying to open your patch!: {0}", e);}
                                     }
                                 }
                                 finally
@@ -1040,6 +1059,7 @@ namespace KH2FM_Toolkit
                             catch
                             {
                             }
+#endregion
                         }
                         else
                         {
@@ -1085,7 +1105,6 @@ namespace KH2FM_Toolkit
             {
                 Console.Write("\nPress enter to exit...");
                 Console.ReadLine();
-
             }
         }
     }
