@@ -83,3 +83,22 @@ for each item:
     <uint> Page number (Treated in some places as a signed byte)
     <byte*40> ?
 ```
+
+# 00objentry.bin
+```cpp
+for each item:
+    <uint> Unknown
+    <uint> Unknown
+    <ushort> Character digit
+    <ushort> Unknown
+    <ushort> Character type
+    <ushort> Apparition priority
+    <byte*32> Name
+    <byte*32> Animation name
+    <uint> Unknown
+    <ushort> VSB Loaded
+    <ushort> Weapon loaded
+    <uint> Camera position
+    <uint> Unknown
+    <byte*48> Unknown
+```
