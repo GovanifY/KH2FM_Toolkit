@@ -1216,7 +1216,7 @@ else
 
             Console.ForegroundColor = ConsoleColor.DarkMagenta;
             Console.Write(
-                "\nProgrammed by {0}\nhttp://www.govanify.com\nhttp://www.twitter.com/GovanifY\nSoftware under GPL 2 license, for more info, use the command -license",
+                "\nProgrammed by {0}\nhttp://www.govanify.com\nhttp://www.twitter.com/GovanifY\n",
                 program.CompanyName);
             Console.ForegroundColor = ConsoleColor.Gray;
             if (extract)
