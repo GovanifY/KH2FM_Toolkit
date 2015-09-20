@@ -10,7 +10,7 @@ namespace GovanifY.Utility
         private readonly bool leaveOpen;
         private readonly long length;
         private readonly long origin;
-        private Stream baseStream;
+        public Stream baseStream;
         private long position;
 
         /// <summary>

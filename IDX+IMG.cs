@@ -12,7 +12,7 @@ namespace IDX_Tools
     internal class IDXFile : IDisposable, IEnumerable<IDXFile.IDXEntry>
     {
         private readonly bool leaveOpen;
-        private BinaryReader file;
+        public BinaryReader file;
 
         protected IDXFile()
         {
@@ -103,7 +103,7 @@ namespace IDX_Tools
             }
         }
 
-        private void FindEntryByHash(uint hash)
+        public void FindEntryByHash(uint hash)
         {
             file.BaseStream.Position = 4;
             for (uint i = 0; i < Count; ++i)

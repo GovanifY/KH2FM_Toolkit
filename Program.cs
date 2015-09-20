@@ -48,6 +48,13 @@ namespace KH2FM_Toolkit
 #else
         private static bool UISwitch = true;
 #endif
+
+#if REPLACER
+		private static bool Replacer = true;
+#else
+		private static bool Replacer = false;
+#endif
+
         private static DateTime Builddate { get; set; }
 
         private static DateTime RetrieveLinkerTimestamp()
@@ -846,6 +853,79 @@ else
             }
         }
 
+		private static void ReplaceISO(Stream isofile)
+		{
+			var iso = new ISOFileReader (isofile);
+			IDXFile KH2idx;
+			IDXFile OVLidx;
+
+			var KH2IDXName = iso.FindFile("KH2.IDX");
+			var OVLIDXName = iso.FindFile("OVL.IDX");
+			var KH2idxStream = iso.GetFileStream (KH2IDXName);
+			var OVLidxStream = iso.GetFileStream (OVLIDXName);
+			KH2idx = new IDXFile (KH2idxStream, leaveOpen: true);
+			OVLidx = new IDXFile (OVLidxStream, leaveOpen: true);
+			foreach (var PatchEntry in Patches.patches) 
+			{
+				Console.WriteLine ("Checking for hash {0} in ISO...", PatchEntry.Value.Hash);
+				try
+				{
+					KH2idx.FindEntryByHash(PatchEntry.Value.Hash);
+
+					Console.Write("Hash found on KH2 IDX! Replacing...");
+					KH2idx.file.ReadUInt32();
+					KH2idx.file.ReadUInt32();//We don't care about compression flags/hashes do we?
+					var IMGOffset = KH2idx.file.ReadUInt32() * 2048;
+
+					//Such harmonious way to write new file size, isn't it? ;o
+					KH2idxStream.Write(BitConverter.GetBytes(PatchEntry.Value.CompressedSize),(int)KH2idxStream.Position, BitConverter.GetBytes(PatchEntry.Value.CompressedSize).Length);
+
+					var KH2IMGName = iso.FindFile("KH2.IMG");
+					var KH2IMGStream = iso.GetFileStream (KH2IMGName);
+
+					KH2IMGStream.Seek(IMGOffset, SeekOrigin.Begin);
+
+					MemoryStream ms = new MemoryStream();
+						PatchEntry.Value.Stream.baseStream.CopyTo(ms);
+						ms.ToArray();
+					KH2IMGStream.Write(ms.ToArray(), (int)KH2IMGStream.Position, ms.ToArray().Length);
+					Console.WriteLine ("Done!");
+				}
+				catch 
+				{
+					try
+					{
+						OVLidx.FindEntryByHash(PatchEntry.Value.Hash);
+
+						Console.Write("Hash found on OVL IDX! Replacing...");
+						OVLidx.file.ReadUInt32();
+						OVLidx.file.ReadUInt32();//We don't care about compression flags/hashes do we?
+						var IMGOffset = OVLidx.file.ReadUInt32() * 2048;
+
+						//Such harmonious way to write new file size, isn't it? ;o
+						OVLidxStream.Write(BitConverter.GetBytes(PatchEntry.Value.CompressedSize),(int)OVLidxStream.Position, BitConverter.GetBytes(PatchEntry.Value.CompressedSize).Length);
+
+						var OVLIMGName = iso.FindFile("OVL.IMG");
+						var OVLIMGStream = iso.GetFileStream (OVLIMGName);
+
+						OVLIMGStream.Seek(IMGOffset, SeekOrigin.Begin);
+
+						MemoryStream ms = new MemoryStream();
+						PatchEntry.Value.Stream.baseStream.CopyTo(ms);
+						ms.ToArray();
+						OVLIMGStream.Write(ms.ToArray(), (int)OVLIMGStream.Position, ms.ToArray().Length);
+						Console.WriteLine ("Done!");
+					}
+					catch
+					{
+						WriteError("No matching IDX entry were found! Aborting replacing process...");
+					}
+				}
+
+			}
+
+		}
+
         /// <param name="isofile">Original ISO</param>
         /// <param name="nisofile">New ISO file</param>
         private static void PatchISO(Stream isofile, Stream nisofile)
@@ -1137,11 +1217,15 @@ else
                         Console.Write("Help extracted as a Readme\nPress enter to leave the software...");
                         Console.Read();
                         return;
+					case "-replacer":
+						Replacer = true;
+						break;
 #if !RELEASE
                     case "-patchmaker":
                         KH2ISO_PatchMaker.Program.Mainp(args);
                         break;
 #endif
+
                     default:
                         if (File.Exists(arg))
                         {
@@ -1240,9 +1324,21 @@ else
                     }
                     else
                     {
-                        Console.Write(verify
-                       ? "\n\nThis tool will calculate the hash of your iso for verify if it's a good dump of KH2(FM) or not.\n\n"
-                       : "\n\nThis tool is able to patch the game Kingdom Hearts 2(Final Mix).\nIt can modify iso files, like the elf and internal files,\nwich are stored inside KH2.IMG and OVL.IMG\nThis tool is recreating too new hashes into the idx files for avoid\na corrupted game. It can add some files too.\n\n");
+						if (verify) 
+						{
+							Console.Write ("\n\nThis tool will calculate the hash of your iso for verify if it's a good dump of KH2(FM) or not.\n\n");
+						} 
+						else 
+						{
+							if (Replacer) 
+							{
+								Console.Write ("\n\nThis tool will replace files for having a quick test and patch option.\nWARNING: This is HIGHLY unstable!\n\n");
+							} 
+							else 
+							{
+								Console.Write("\n\nThis tool is able to patch the game Kingdom Hearts 2(Final Mix).\nIt can modify iso files, like the elf and internal files,\nwich are stored inside KH2.IMG and OVL.IMG\nThis tool is recreating too new hashes into the idx files for avoid\na corrupted game. It can add some files too.\n\n");
+							}
+						}
                     }
                 }
             }
@@ -1563,22 +1659,29 @@ System.IO.File.WriteAllLines("HASHLIST.txt", hashes);
                             }
                             else
                             {
-                                isoname = Path.ChangeExtension(isoname, ".NEW.ISO");
-                                try
-                                {
-                                    using (
-                                        FileStream NewISO = File.Open(isoname, FileMode.Create, FileAccess.ReadWrite,
+								if(Replacer)
+								{
+									ReplaceISO(iso);
+								}
+								else
+								{
+
+                       		         isoname = Path.ChangeExtension(isoname, ".NEW.ISO");
+                        	  	     try
+                               		 {
+                           	         using (FileStream NewISO = File.Open(isoname, FileMode.Create, FileAccess.ReadWrite,
                                             FileShare.None))
-                                    {
-                                        PatchISO(iso, NewISO);
-                                    }
-                                }
-                                catch (Exception)
-                                {
-                                    //Delete the new "incomplete" iso
-                                    File.Delete(isoname);
-                                    throw;
-                                }
+                                     	{
+                                       		 PatchISO(iso, NewISO);
+                                   		}
+                              		 }
+                                	 catch (Exception)
+                                	 {
+                                    	 //Delete the new "incomplete" iso
+                                    	 File.Delete(isoname);
+                                    	 throw;
+                                	 }
+								}
                             }
                         }
                     }

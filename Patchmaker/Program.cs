@@ -521,7 +521,7 @@ namespace KH2ISO_PatchMaker
             Console.Title = ISOTP.program.ProductName + " " + ISOTP.program.FileVersion + " [" +
                             ISOTP.program.CompanyName + "]";
             var patch = new PatchFile();
-            bool encrypt = true,
+            bool encrypt = false,
                 batch = false,
                 authorSet = false,
                 verSet = false,
