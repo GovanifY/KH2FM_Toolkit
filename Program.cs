@@ -899,8 +899,8 @@ else
 			foreach (var PatchEntry in Patches.patches) 
 			{
 				Console.WriteLine ("Checking for hash {0} in ISO...", String.Format("{0:X8}", PatchEntry.Value.Hash));
-			/*	try
-				{*/
+				try
+				{
 					KH2idx.FindEntryByHash(PatchEntry.Value.Hash);
 
 					Console.Write("Hash found on KH2 IDX! Replacing...");
@@ -921,7 +921,7 @@ else
 						ms.ToArray();
 					KH2IMGStream.Write(ms.ToArray(), (int)KH2IMGStream.Position, ms.ToArray().Length);
 					Console.WriteLine ("Done!");
-			/*	}
+				}
 				catch
 				{
 					try
@@ -950,7 +950,7 @@ else
 					{
 						WriteError("No matching IDX entry were found in KH2 or OVL! Aborting replacing process...");
 					}
-				}*/
+				}
 
 			}
 
