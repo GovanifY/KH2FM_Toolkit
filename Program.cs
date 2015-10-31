@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -29,17 +29,17 @@ namespace KH2FM_Toolkit
             FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
 
         private static readonly PatchManager Patches = new PatchManager();
-        private static bool _advanced;
+        private static bool _advanced = false;
 #if KH2PATCH_EXTRACTOR
         private static bool k2e = true;
 #else
-        private static bool k2e;
+        private static bool k2e = false;
 #endif
 
 #if KH2CONVERT_PATCH
         private static bool convertpatch = true;
 #else
-        private static bool convertpatch;
+        private static bool convertpatch = false;
 #endif
         private static bool oldui;
 
@@ -865,11 +865,42 @@ else
 			var OVLidxStream = iso.GetFileStream (OVLIDXName);
 			KH2idx = new IDXFile (KH2idxStream, leaveOpen: true);
 			OVLidx = new IDXFile (OVLidxStream, leaveOpen: true);
+
+			/*I need to add all sub hashes found in KH2.IMG:
+			 *                         case 0x0499386d: //000hb.idx
+                        case 0x0b2025ed: //000mu.idx
+                        case 0x2b87c9dc: //000di.idx
+                        case 0x2bb6ecb2: //000ca.idx
+                        case 0x35f6154a: //000al.idx
+                        case 0x3604eeef: //000tt.idx
+                        case 0x43887a92: //000po.idx
+                        case 0x4edb9e9e: //000gumi.idx
+                        case 0x608e02b4: //000es.idx
+                        case 0x60dd6d06: //000lk.idx
+                        case 0x79a2a329: //000eh.idx
+                        case 0x84eaa276: //000tr.idx
+                        case 0x904a97e0: //000wm.idx
+                        case 0xb0be1463: //000wi.idx
+                        case 0xd233219f: //000lm.idx
+                        case 0xe4633b6f: //000nm.idx
+                        case 0xeb89495d: //000bb.idx
+                        case 0xf87401c0: //000dc.idx
+                        case 0xff7a1379: //000he.idx
+                        */
+			Console.WriteLine ("I will now list all the hashes I got in memory.");
+			foreach (IDXFile.IDXEntry idx in OVLidx) 
+			{
+				Console.WriteLine ("{0}", String.Format("{0:X8}", idx.Hash));
+			}
+			foreach (IDXFile.IDXEntry idx in KH2idx) 
+			{
+				Console.WriteLine ("{0}", String.Format("{0:X8}", idx.Hash));
+			}
 			foreach (var PatchEntry in Patches.patches) 
 			{
-				Console.WriteLine ("Checking for hash {0} in ISO...", PatchEntry.Value.Hash);
-				try
-				{
+				Console.WriteLine ("Checking for hash {0} in ISO...", String.Format("{0:X8}", PatchEntry.Value.Hash));
+			/*	try
+				{*/
 					KH2idx.FindEntryByHash(PatchEntry.Value.Hash);
 
 					Console.Write("Hash found on KH2 IDX! Replacing...");
@@ -877,9 +908,9 @@ else
 					KH2idx.file.ReadUInt32();//We don't care about compression flags/hashes do we?
 					var IMGOffset = KH2idx.file.ReadUInt32() * 2048;
 
-					//Such harmonious way to write new file size, isn't it? ;o
-					KH2idxStream.Write(BitConverter.GetBytes(PatchEntry.Value.CompressedSize),(int)KH2idxStream.Position, BitConverter.GetBytes(PatchEntry.Value.CompressedSize).Length);
-
+					//Such harmonious way to write new file size, isn't it? ;o WARNING: IT CRASHES
+					KH2idxStream.Seek((int)KH2idxStream.Position, SeekOrigin.Begin);
+						KH2idxStream.Write(PatchEntry.Value.CompressedSize);
 					var KH2IMGName = iso.FindFile("KH2.IMG");
 					var KH2IMGStream = iso.GetFileStream (KH2IMGName);
 
@@ -890,8 +921,8 @@ else
 						ms.ToArray();
 					KH2IMGStream.Write(ms.ToArray(), (int)KH2IMGStream.Position, ms.ToArray().Length);
 					Console.WriteLine ("Done!");
-				}
-				catch 
+			/*	}
+				catch
 				{
 					try
 					{
@@ -902,25 +933,24 @@ else
 						OVLidx.file.ReadUInt32();//We don't care about compression flags/hashes do we?
 						var IMGOffset = OVLidx.file.ReadUInt32() * 2048;
 
+						OVLidxStream.Seek((int)OVLidxStream.Position, SeekOrigin.Begin);
 						//Such harmonious way to write new file size, isn't it? ;o
-						OVLidxStream.Write(BitConverter.GetBytes(PatchEntry.Value.CompressedSize),(int)OVLidxStream.Position, BitConverter.GetBytes(PatchEntry.Value.CompressedSize).Length);
-
+						//OVLidxStream.Write(PatchEntry.Value.CompressedSize);
 						var OVLIMGName = iso.FindFile("OVL.IMG");
 						var OVLIMGStream = iso.GetFileStream (OVLIMGName);
-
 						OVLIMGStream.Seek(IMGOffset, SeekOrigin.Begin);
-
 						MemoryStream ms = new MemoryStream();
 						PatchEntry.Value.Stream.baseStream.CopyTo(ms);
-						ms.ToArray();
-						OVLIMGStream.Write(ms.ToArray(), (int)OVLIMGStream.Position, ms.ToArray().Length);
-						Console.WriteLine ("Done!");
+						byte[] PatchFile = ms.ToArray();
+						int FileLength = PatchFile.Length;
+						int offset2 = (int)OVLIMGStream.Position;
+						OVLIMGStream.Write(PatchFile, offset2, FileLength);
 					}
 					catch
 					{
-						WriteError("No matching IDX entry were found! Aborting replacing process...");
+						WriteError("No matching IDX entry were found in KH2 or OVL! Aborting replacing process...");
 					}
-				}
+				}*/
 
 			}
 
@@ -1034,7 +1064,6 @@ else
                 using (var niso = new ISOCopyWriter(nisofile, iso))
                 {
                     ConsoleProgress consoleProgress = new ConsoleProgress((long)iso.Count<FileDescriptor>(), "Patching ISO...", ConsoleColor.Green);
-                    uint i = 0;
                     Trivalent cKh2 = Patches.KH2Changed ? Trivalent.ChangesPending : Trivalent.NoChanges,
                         cOvl = Patches.OVLChanged ? Trivalent.ChangesPending : Trivalent.NoChanges;
                     bool cIso = Patches.ISOChanged;
