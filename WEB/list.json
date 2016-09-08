@@ -1,0 +1,15 @@
+{
+   "LastVersions":{
+      "other":{
+         "version":"PRE-3.0",
+         "build":"21",
+         "type":"none"
+      },
+      "blacklist":{
+        "version":"PRE-3.0",
+        "build":"21",
+        "type":"blacklist"
+      }
+
+   }
+}

@@ -3,7 +3,7 @@ It uses a list that gives all of the ISO resource names in clear (msg/jp/al.bar)
 The list isn't totally complete but all the files you should need got a name.
 
 This tool can launch more than one patch and mix them instead to have to apply them one by one.
-Simply drag 'n drop all patches you need to apply to the toolkit or, with the 
+Simply drag 'n drop all patches you need to apply to the toolkit or, with the
 windows cmd, execute the command(in the directory of KH2FM_Toolkit): KH2FM_Toolkit patch1.kh2patch patch2.kh2patch
 
 You can change the name of the iso to modify simply by drag 'n drop him to the software or to use the command: "KH2FM_Toolkit [youroptions] YOURISO.ISO
@@ -46,6 +46,15 @@ When you want to write the patch file, just leave blank a filename, it will crea
 Thanks to Xeeynamo that programmed his tools on C and for translated the game on english. Love you <3
 
 Changelog:
+[PRE-3.0]
+*A lot of underground changes
+*Abandonning latest patch format in order to get to a decrypted one, faster. Both creating and loading patches should now be a lot faster and takes only minimal resources.
+*Adding an auto update feature(for those who don't want it create a file called "noupdate.bin" in the directory of the toolkit)
+*Adding a fast patch option
+*Reverting crypto of Hashlist
+*Reverting to old ui, now the -newui option needs to be used to get the new ui, beeing buggy on some platforms.
+*Fast Patch option quite Added
+*A lot of other things!
 [2.9.0.0]
 *Some commands for automated build added! (uselog)
 *Preparing changes for the 3.0 release!
@@ -81,21 +90,21 @@ Changelog:
 
 -----Copyright 01/23/2015 @ GovanifY
 
-                                                                                                                                                
-                                                                                                                                                
+
+
         GGGGGGGGGGGGG                                                                           iiii     ffffffffffffffff  YYYYYYY       YYYYYYY
      GGG::::::::::::G                                                                          i::::i   f::::::::::::::::f Y:::::Y       Y:::::Y
    GG:::::::::::::::G                                                                           iiii   f::::::::::::::::::fY:::::Y       Y:::::Y
   G:::::GGGGGGGG::::G                                                                                  f::::::fffffff:::::fY::::::Y     Y::::::Y
  G:::::G       GGGGGG   ooooooooooo vvvvvvv           vvvvvvvaaaaaaaaaaaaa  nnnn  nnnnnnnn    iiiiiii  f:::::f       ffffffYYY:::::Y   Y:::::YYY
-G:::::G               oo:::::::::::oov:::::v         v:::::v a::::::::::::a n:::nn::::::::nn  i:::::i  f:::::f                Y:::::Y Y:::::Y   
-G:::::G              o:::::::::::::::ov:::::v       v:::::v  aaaaaaaaa:::::an::::::::::::::nn  i::::i f:::::::ffffff           Y:::::Y:::::Y    
-G:::::G    GGGGGGGGGGo:::::ooooo:::::o v:::::v     v:::::v            a::::ann:::::::::::::::n i::::i f::::::::::::f            Y:::::::::Y     
-G:::::G    G::::::::Go::::o     o::::o  v:::::v   v:::::v      aaaaaaa:::::a  n:::::nnnn:::::n i::::i f::::::::::::f             Y:::::::Y      
-G:::::G    GGGGG::::Go::::o     o::::o   v:::::v v:::::v     aa::::::::::::a  n::::n    n::::n i::::i f:::::::ffffff              Y:::::Y       
-G:::::G        G::::Go::::o     o::::o    v:::::v:::::v     a::::aaaa::::::a  n::::n    n::::n i::::i  f:::::f                    Y:::::Y       
- G:::::G       G::::Go::::o     o::::o     v:::::::::v     a::::a    a:::::a  n::::n    n::::n i::::i  f:::::f                    Y:::::Y       
-  G:::::GGGGGGGG::::Go:::::ooooo:::::o      v:::::::v      a::::a    a:::::a  n::::n    n::::ni::::::if:::::::f                   Y:::::Y       
-   GG:::::::::::::::Go:::::::::::::::o       v:::::v       a:::::aaaa::::::a  n::::n    n::::ni::::::if:::::::f                YYYY:::::YYYY    
-     GGG::::::GGG:::G oo:::::::::::oo         v:::v         a::::::::::aa:::a n::::n    n::::ni::::::if:::::::f                Y:::::::::::Y    
-        GGGGGG   GGGG   ooooooooooo            vvv           aaaaaaaaaa  aaaa nnnnnn    nnnnnniiiiiiiifffffffff                YYYYYYYYYYYYY    
+G:::::G               oo:::::::::::oov:::::v         v:::::v a::::::::::::a n:::nn::::::::nn  i:::::i  f:::::f                Y:::::Y Y:::::Y
+G:::::G              o:::::::::::::::ov:::::v       v:::::v  aaaaaaaaa:::::an::::::::::::::nn  i::::i f:::::::ffffff           Y:::::Y:::::Y
+G:::::G    GGGGGGGGGGo:::::ooooo:::::o v:::::v     v:::::v            a::::ann:::::::::::::::n i::::i f::::::::::::f            Y:::::::::Y
+G:::::G    G::::::::Go::::o     o::::o  v:::::v   v:::::v      aaaaaaa:::::a  n:::::nnnn:::::n i::::i f::::::::::::f             Y:::::::Y
+G:::::G    GGGGG::::Go::::o     o::::o   v:::::v v:::::v     aa::::::::::::a  n::::n    n::::n i::::i f:::::::ffffff              Y:::::Y
+G:::::G        G::::Go::::o     o::::o    v:::::v:::::v     a::::aaaa::::::a  n::::n    n::::n i::::i  f:::::f                    Y:::::Y
+ G:::::G       G::::Go::::o     o::::o     v:::::::::v     a::::a    a:::::a  n::::n    n::::n i::::i  f:::::f                    Y:::::Y
+  G:::::GGGGGGGG::::Go:::::ooooo:::::o      v:::::::v      a::::a    a:::::a  n::::n    n::::ni::::::if:::::::f                   Y:::::Y
+   GG:::::::::::::::Go:::::::::::::::o       v:::::v       a:::::aaaa::::::a  n::::n    n::::ni::::::if:::::::f                YYYY:::::YYYY
+     GGG::::::GGG:::G oo:::::::::::oo         v:::v         a::::::::::aa:::a n::::n    n::::ni::::::if:::::::f                Y:::::::::::Y
+        GGGGGG   GGGG   ooooooooooo            vvv           aaaaaaaaaa  aaaa nnnnnn    nnnnnniiiiiiiifffffffff                YYYYYYYYYYYYY

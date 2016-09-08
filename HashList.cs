@@ -28,7 +28,7 @@ namespace HashList
                     Console.WriteLine("HASHLIST file found! Loading this file instead of the basic one!");
                     Console.ResetColor();
                 }
-                else
+                else 
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Debug.WriteLine("HASHLIST file found! Loading this file instead of the basic one!");
@@ -38,8 +38,7 @@ namespace HashList
 
             #region EncryptionRessource
 #if !RELEASE
-            byte[] Hashlist = Resources.Hashlist;
-            PatchManager.GYXor(Hashlist);
+			byte[] Hashlist = Resources.Hashlist;
             string Hashtemp = Path.GetTempFileName();
             File.WriteAllBytes(Hashtemp, Hashlist);
             if (pairs == null)
@@ -136,7 +135,6 @@ namespace HashList
             else
             {
                 byte[] Hashlistencrypted = File.ReadAllBytes(filename);
-                PatchManager.GYXor(Hashlistencrypted);
                 string Hashtemp2 = Path.GetTempFileName();
                 File.WriteAllBytes(Hashtemp2, Hashlistencrypted);
                 using (

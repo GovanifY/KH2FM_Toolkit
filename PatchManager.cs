@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 namespace KH2FM_Toolkit
 {
 /* KH2 Patch File Format
- * 0    UInt32  Magic 0x5032484B "KH2P" 
+ * 0    UInt32  Magic 0x5032484B "KH2P"
  * 4    UInt32  0x10000000 + Author Length
  * 8    UInt32  0x10000000 + Author Length + 0x10000000 + Changelog Length + 40000000 + Credits Length + Other Info Length
  * 12   UInt32  Version number of the patch
@@ -18,20 +18,20 @@ namespace KH2FM_Toolkit
  * ?    UInt32  0x0C000000
  * ?    UInt32  0x10000000 + Changelog Length
  * ?    UInt32  0x10000000 + Changelog Length + 40000000 + Credits Length
- * ?    UInt32  Number of lines of the changelog 
- *   
+ * ?    UInt32  Number of lines of the changelog
+ *
  *      for each changelog lines:
  *          UInt32  "i" 0x04000000
  *          Increase i by the length of the next line
  *          string Changelog line
- *          
+ *
  * ?    UInt32  Number of lines of the credits
- * 
+ *
  *      for each changelog lines:
  *          UInt32  "i" 0x04000000
  *          Increase i by the length of the next line
  *          string Changelog line
- *          
+ *
  * ?    string  Other infos
  * ?    UInt32  Number of files
  *      i = (Position of the stream of the patch + Number of files) *92
@@ -46,7 +46,7 @@ namespace KH2FM_Toolkit
  *          UInt32  If file should be added if he's not in the game 0x01000000, otherwise 0x00000000
  *          UInt32(x15) 0x00000000(padding)
  *          byte*?  Raw file data
- * 
+ *
  *      for each relinked file:
  *          UInt32  0x00000000
  *          UInt32  0x00000000
@@ -54,16 +54,14 @@ namespace KH2FM_Toolkit
  *          UInt32 Hash of the file
  *          UInt32 Hash of the filename to relink to
  *          UInt32  0x00000000
- * 
- * 
+ *
+ *
  * Notes:
  * All files which needs to be compressed are already compressed into the patch file
  * Relinking a file will copy the content of the original file to the new file
  */
     public sealed class PatchManager : IDisposable
     {
-        private static byte[] Key = { 66, 154, 103, 6, 131, 56, 198, 199, 171, 244, 37, 137, 247, 250, 39, 58, 253, 205, 12, 148, 6, 61, 235, 5, 42, 251, 114, 214, 199, 230, 24, 201 };
-        private static byte[] Vector = { 146, 64, 191, 111, 23, 3, 113, 119, 231, 141, 221, 112, 79, 32, 114, 156 };
         private readonly List<Stream> patchms = new List<Stream>();
 
         /// <summary>Mapping of Parent IDX -> new children hashes</summary>
@@ -77,6 +75,7 @@ namespace KH2FM_Toolkit
             ISOChanged = OVLChanged = KH2Changed = false;
         }
 
+        public bool fast_patch=false;
         public bool ISOChanged { get; private set; }
         public bool OVLChanged { get; private set; }
         public bool KH2Changed { get; private set; }
@@ -141,16 +140,6 @@ namespace KH2FM_Toolkit
             {
                 buffer[++i] ^= v84[(--l & 63)];
             }
-        }
-        public static byte[] NGYXor(byte[] buffer)
-        {
-            RijndaelManaged _rijndaelManaged = new RijndaelManaged { Key = Key, IV = Vector };
-            return SimpleAES.Decrypt(buffer, Key, Vector, _rijndaelManaged);
-        }
-        public static byte[] NGYEnc(byte[] buffer)
-        {
-            RijndaelManaged _rijndaelManaged = new RijndaelManaged { Key = Key, IV = Vector };
-            return buffer = SimpleAES.Encrypt(buffer, Key, Vector, _rijndaelManaged);
         }
 
         public static uint ToHash(string name)
@@ -218,9 +207,18 @@ namespace KH2FM_Toolkit
                     br.Seek(0, SeekOrigin.Begin);
                     if (br.ReadUInt32() != 0x5132484b)
                     {
+                      br.Seek(0, SeekOrigin.Begin);
+                      if (br.ReadUInt32() != 0x4632484b)
+                      {
                         br.Close();
                         ms.Close();
                         throw new InvalidDataException("Invalid KH2Patch file!");
+                      }
+                      else
+                      {
+                        fast_patch=true;
+                        Console.WriteLine("Fast patch and dev flags detected! You might get some issues with those!");
+                      }
                     }
                 }
                 patchms.Add(ms);
@@ -351,7 +349,7 @@ namespace KH2FM_Toolkit
             {
                 fs = new FileStream(patchname, FileMode.Open, FileAccess.Read, FileShare.Read);
                 int num;
-                if (fs.ReadByte() == 0x4B && fs.ReadByte() == 0x48 && fs.ReadByte() == 0x32 && ((num = fs.ReadByte()) == 80 || num == 81))
+                if (fs.ReadByte() == 0x4B && fs.ReadByte() == 0x48 && fs.ReadByte() == 0x32 && ((num = fs.ReadByte()) == 0x50 || num == 0x51 || num == 0x46))
                 {
                     fs.Position = 0;
                     AddPatch(fs, patchname);
@@ -364,50 +362,39 @@ namespace KH2FM_Toolkit
 
                 try
                 {
-                    fs.Position = 0;
-                    var buffer = new byte[fs.Length];
-                    fs.Read(buffer, 0, (int) fs.Length);
-                    byte[] data2 = NGYXor(buffer);
-                    buffer = null;
-                    AddPatch(new MemoryStream(data2), patchname);
+                  fs.Position = 0;
+                  var buffer = new byte[fs.Length];
+                  fs.Read(buffer, 0, (int)fs.Length);
+                  if (XorSig(buffer, OGYX))
+                  {
+                      GYXor(buffer);
+                      AddPatch(new MemoryStream(buffer), patchname);
+                  }
+                  else
+                  {
+                      throw new Exception();
+                  }
+#if DEBUG
+                  Program.WriteWarning("Old format is used, Please use the new one!");
+#endif
                 }
-
                 catch (Exception)
                 {
-                    try
-                    {
-                        fs.Position = 0;
-                        var buffer = new byte[fs.Length];
-                        fs.Read(buffer, 0, (int)fs.Length);
-                        if (XorSig(buffer, OGYX))
-                        {
-                            GYXor(buffer);
-                            AddPatch(new MemoryStream(buffer), patchname);
-                        }
-                        else
-                        {
-                            throw;
-                        }
-#if DEBUG
-                        Program.WriteWarning("Old format is used, Please use the new one!");
+                      fs.Position = 0;
+                      var buffer = new byte[fs.Length];
+                      fs.Read(buffer, 0, (int)fs.Length);
+                      if (XorSig(buffer, ODXY))
+                      {
+                          XeeyXor(buffer);
+                          AddPatch(new MemoryStream(buffer), patchname);
+                      }
+                      else
+                      {
+                          throw;
+                      }
+#if DBEUG
+                      Program.WriteWarning("Old format is used, Please use the new one!");
 #endif
-                    }
-                    catch (Exception)
-                    {
-                        fs.Position = 0;
-                        var buffer = new byte[fs.Length];
-                        fs.Read(buffer, 0, (int)fs.Length);
-                        if (XorSig(buffer, ODXY))
-                        {
-                            XeeyXor(buffer);
-                            AddPatch(new MemoryStream(buffer), patchname);
-                        }
-                        else
-                        {
-                            throw;
-                        }
-                        Program.WriteWarning("Old format is used, Please use the new one!");
-                    }
                 }
                 finally
                 {

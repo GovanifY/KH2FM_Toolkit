@@ -67,8 +67,10 @@ namespace KH2FM_Toolkit
             get;
             set;
         }
-        public ConsoleProgress(long total, string text = null, ConsoleColor color = ConsoleColor.Green)
+        public ConsoleProgress(long total, string text = null, ConsoleColor color = ConsoleColor.Green, bool activate=true)
         {
+          if(activate)
+          {
             this.Color = color;
             this.Text = text;
             this.Total = total;
@@ -79,6 +81,7 @@ namespace KH2FM_Toolkit
             this._ConsoleTop = Console.CursorTop;
             Console.WriteLine();
             Console.CursorVisible = false;
+          }
         }
         ~ConsoleProgress()
         {

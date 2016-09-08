@@ -43,8 +43,6 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>RELEASE</DefineConstants>
@@ -106,7 +104,6 @@
     <Compile Include="PatchManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Shared\SimpleAES.cs" />
     <Compile Include="Utility.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -123,9 +120,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="Ressources\Hashlist.bin" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Ressources\Hashlist.bin" />
     <Content Include="toolkit.ico" />
     <Content Include="Ressources\Readme.txt" />
   </ItemGroup>
@@ -156,6 +153,18 @@
     <Optimize>false</Optimize>
     <OutputPath>bin\Replacer</OutputPath>
     <DefineConstants>RELEASE;REPLACER</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug_Blacklist|AnyCPU' ">
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug_Blacklist</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NETFX_CORE;WINDOWS_APP;BLACKLIST;</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_Blacklist|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release_Blacklist</OutputPath>
+    <DefineConstants>RELEASE;BLACKLIST</DefineConstants>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

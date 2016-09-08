@@ -11,7 +11,11 @@ using HashList;
 using KH2FM_Toolkit;
 using KHCompress;
 using ISOTP = KH2FM_Toolkit.Program;
+/*Potential ideas:
+  Dev format
+*Add debug tracker for logs (pcsx2 debugger)
 
+*/
 /* KH2 Patch File Format
  * 0    UInt32  Magic 0x5032484B "KH2P"
  * 4    UInt32  0x10000000 + Author Length
@@ -21,20 +25,20 @@ using ISOTP = KH2FM_Toolkit.Program;
  * ?    UInt32  0x0C000000
  * ?    UInt32  0x10000000 + Changelog Length
  * ?    UInt32  0x10000000 + Changelog Length + 40000000 + Credits Length
- * ?    UInt32  Number of lines of the changelog 
- *   
+ * ?    UInt32  Number of lines of the changelog
+ *
  *      for each changelog lines:
  *          UInt32  "i" 0x04000000
  *          Increase i by the length of the next line
  *          string Changelog line
- *          
+ *
  * ?    UInt32  Number of lines of the credits
- * 
+ *
  *      for each changelog lines:
  *          UInt32  "i" 0x04000000
  *          Increase i by the length of the next line
  *          string Changelog line
- *          
+ *
  * ?    string  Other infos
  * ?    UInt32  Number of files
  *      i = (Position of the stream of the patch + Number of files) *92
@@ -49,7 +53,7 @@ using ISOTP = KH2FM_Toolkit.Program;
  *          UInt32  If file should be added if he's not in the game 0x01000000, otherwise 0x00000000
  *          UInt32(x15) 0x00000000(padding)
  *          byte*?  Raw file data
- * 
+ *
  *      for each relinked file:
  *          UInt32  0x00000000
  *          UInt32  0x00000000
@@ -57,8 +61,8 @@ using ISOTP = KH2FM_Toolkit.Program;
  *          UInt32 Hash of the file
  *          UInt32 Hash of the filename to relink to
  *          UInt32  0x00000000
- * 
- * 
+ *
+ *
  * Notes:
  * All files which needs to be compressed are already compressed into the patch file
  * Relinking a file will copy the content of the original file to the new file
@@ -69,9 +73,11 @@ namespace KH2ISO_PatchMaker
     {
         bool uselog = false;
         public const uint Signature = 0x5032484B;
+        public const uint Signature_Fast = 0x4632484B;
         public const uint Signaturec = 0x4332484B;
         private readonly List<byte[]> Changelogs = new List<byte[]>();
         public List<byte[]> Credits = new List<byte[]>();
+        public bool fast_patch=false;
         public List<FileEntry> Files = new List<FileEntry>();
         public uint Version = 1;
         private byte[] _Author = {0};
@@ -117,7 +123,9 @@ namespace KH2ISO_PatchMaker
 
         public void WriteDecrypted(Stream stream)
         {
-            ConsoleProgress consoleProgress = new ConsoleProgress(Files.Count, "Creating kh2patch...", ConsoleColor.Green);
+          ConsoleProgress consoleProgress = null;
+          if(!Program.oldui){
+            consoleProgress = new ConsoleProgress(Files.Count, "Creating kh2patch...", ConsoleColor.Green);}
             stream.Position = 0;
             uint changeLen = 0, creditLen = 0;
             changeLen = Changelogs.Aggregate(changeLen, (current, b) => current + (4 + (uint) b.Length));
@@ -125,7 +133,14 @@ namespace KH2ISO_PatchMaker
             using (var bw = new BinaryStream(stream, leaveOpen: true))
             {
                 uint i;
+                if(!fast_patch)
+                {
                 bw.Write(Signature);
+                }
+                else
+                {
+                  bw.Write(Signature_Fast);
+                }
                 bw.Write((uint) (16 + _Author.Length));
                 bw.Write((uint) (16 + _Author.Length + 16 + changeLen + 4 + creditLen + _OtherInfo.Length));
                 bw.Write(Version);
@@ -331,8 +346,11 @@ namespace KH2ISO_PatchMaker
                 {
                     File.Delete(filename);
                 }
+                if (Program.oldui){Console.WriteLine("Patch created.");}
+                else{
                 consoleProgress.Text = "Patch created.";
                 consoleProgress.Finish();
+              }
             }
         }
 
@@ -346,9 +364,8 @@ namespace KH2ISO_PatchMaker
                     WriteDecrypted(ms);
                     data = ms.ToArray();
                 }
-                byte[] data2 = PatchManager.NGYEnc(data);
-                data = null;
-                stream.Write(data2, 0, data2.Length);
+                PatchManager.GYXor(data);
+                stream.Write(data, 0, data.Length);
             }
             else
             {
@@ -406,9 +423,9 @@ namespace KH2ISO_PatchMaker
     {
         //Define a bool who's define if the Xeeynamo's encryption is used. She's false until the command -xeey is used
         public static bool UISwitch = true;
-        public static bool oldui = false;
+        public static bool oldui = true;
         public static bool DoXeey = false;
-        public static bool NewFormat = true;
+        public static bool fast_patch=false;
         public static bool Compression = false;
         public static bool hvs = false;
         public static bool uselog = false;
@@ -500,7 +517,7 @@ namespace KH2ISO_PatchMaker
             {
                 string inp;
                 if (!uselog) {inp = Console.ReadLine(); } else {inp = logfile.ReadLine(); }
-                
+
                 if (inp == "Y" || inp == "y")
                 {
                     return true;
@@ -518,8 +535,7 @@ namespace KH2ISO_PatchMaker
         {
             bool log = false;
 
-            Console.Title = ISOTP.program.ProductName + " " + ISOTP.program.FileVersion + " [" +
-                            ISOTP.program.CompanyName + "]";
+            Console.Title = ISOTP.program.ProductName + " " + ISOTP.ActualVersion;
             var patch = new PatchFile();
             bool encrypt = false,
                 batch = false,
@@ -536,7 +552,7 @@ namespace KH2ISO_PatchMaker
                 {
                     case "-xeeynamo":
                         DoXeey = true;
-                        ISOTP.WriteWarning("Using Xeeynamo's encryption!(DESTRUCTIVE METHOD)");
+                        ISOTP.WriteWarning("Using Xeeynamo's encryption!");
                         break;
                     case "-batch":
                         batch = true;
@@ -584,6 +600,9 @@ namespace KH2ISO_PatchMaker
                     case "-skipchangelog":
                         changeSet = true;
                         break;
+                    case "-fastpatch":
+                        patch.fast_patch = true;
+                        break;
                     case "-credits":
                         patch.AddCredit(args[++i]);
                         break;
@@ -593,9 +612,9 @@ namespace KH2ISO_PatchMaker
                     case "-uiswitch":
                         UISwitch = true;
                         break;
-                    case "-oldui":
-                    case "-oldinterface":
-                        oldui = true;
+                    case "-newui":
+                    case "-newinterface":
+                        oldui =false;
                         break;
                     case "-output":
                         output = args[++i];
@@ -618,17 +637,22 @@ namespace KH2ISO_PatchMaker
             if (!batch)
             {
                 Console.ForegroundColor = ConsoleColor.Gray;
-                DateTime builddate = RetrieveLinkerTimestamp();
-                Console.Write("{0}\nBuild Date: {2}\nVersion {1}", ISOTP.program.ProductName,
-                    ISOTP.program.FileVersion, builddate);
-                Console.ResetColor();
-#if DEBUG
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("\nPRIVATE RELEASE\n");
-                Console.ResetColor();
-#else
-                Console.Write("\nPUBLIC RELEASE\n");
-#endif
+                    Console.Write("{0}\nVersion {1}", ISOTP.program.ProductName, ISOTP.ActualVersion);
+                    Console.ResetColor();
+        #if PRIVATE
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write("\nPRIVATE RELEASE\n");
+                    Console.ResetColor();
+        #else
+        #if DEBUG
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.Write("\nDEVELOPER RELEASE\n");
+                    Console.ResetColor();
+        #else
+
+                    Console.Write("\nPUBLIC RELEASE\n");
+        #endif
+        #endif
                 Console.ForegroundColor = ConsoleColor.DarkMagenta;
                 Console.Write("\nProgrammed by {0}\nhttp://www.govanify.com\nhttp://www.twitter.com/GovanifY\nSoftware under GPL 2 license, for more info, use the command -license",
                     ISOTP.program.CompanyName);
