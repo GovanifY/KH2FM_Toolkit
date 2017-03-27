@@ -62,9 +62,9 @@ namespace KH2FM_Toolkit
 		//Have to be at least 2 diff otherwise auto build will fail!
 		//Also blacklist NEEDS to be before retail.
 		#if BLACKLIST
-		private static string build="19";
-		#else
 		private static string build="21";
+		#else
+		private static string build="23";
 		#endif
 		public static void WriteWarning(string format, params object[] arg)
 		{
