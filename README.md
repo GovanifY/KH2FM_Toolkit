@@ -11,3 +11,5 @@ make it even faster and made the basics of a quick patch feature(no that's not t
 which for now have all the pros of the actual patching system without the cons(aka time and CPU
 cycles/buffer flush used)
 Thougt it'd be a cool idea to tell it here.
+Yeah dunno if it's ever going to happen.
+I'd like it too y'know, but eh, lack of motivation.

@@ -43,7 +43,9 @@ Options asked:
 When you want to write the patch file, just leave blank a filename, it will create him
 
 
-Thanks to Xeeynamo that programmed his tools on C and for translated the game on english. Love you <3
+Thanks to Xeeynamo that programmed his tools on C and for translated the game on
+english(crazy for some underlying code and part of the Hashlist too).
+Love you <3
 
 Changelog:
 [PRE-3.0]
@@ -89,6 +91,7 @@ Changelog:
 
 
 -----Copyright 01/23/2015 @ GovanifY
+--Ok this is really cringey now that I look at it
 
 
 
