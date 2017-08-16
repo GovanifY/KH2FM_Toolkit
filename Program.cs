@@ -1310,7 +1310,7 @@ namespace KH2FM_Toolkit
 				"\nProgrammed by {0}\nhttps://www.govanify.com\nhttps://www.twitter.com/GovanifY\n",
 				program.CompanyName);
 			Console.ForegroundColor = ConsoleColor.Gray;
-      if(!File.Exists("noupdate.bin"))
+      if(false)
       {
 			Console.WriteLine("Checking updates...");
       var updates = "";
