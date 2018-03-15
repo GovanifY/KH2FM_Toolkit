@@ -21,13 +21,11 @@ cat WEB/list.json | grep '"build"' | sed 's/^.*:"//' | sed 's/",//g' | while rea
 done
 
 #Making dev versions
-xbuild KH2FM_Toolkit.sln /t:Build /p:Configuration=Debug_Blacklist
 xbuild KH2FM_Toolkit.sln /t:Build /p:Configuration=Debug
 #Copying Hashlist so that we can build minimal user versions
 cp Ressources/Hashlist.bin Ressources/Hashlist.bin23
 cp Ressources/Hashlist.bin2 Ressources/Hashlist.bin
 #Making user versions
-xbuild KH2FM_Toolkit.sln /t:Build /p:Configuration=Release_Blacklist
 xbuild KH2FM_Toolkit.sln /t:Build /p:Configuration=Release
 #Copying back Hashlists
 cp Ressources/Hashlist.bin Ressources/Hashlist.bin2
@@ -35,10 +33,7 @@ cp Ressources/Hashlist.bin23 Ressources/Hashlist.bin
 
 #Copying all in dist directory
 mkdir dist
-cp WEB/list.json dist/list.json
-cp obj/Debug_Blacklist/KH2FM_Toolkit.exe dist/toolkit_dev_blacklist.exe
 cp obj/Debug/KH2FM_Toolkit.exe dist/toolkit_dev_other.exe
-cp obj/Release_Blacklist/KH2FM_Toolkit.exe dist/toolkit_user_blacklist.exe
 cp obj/Release/KH2FM_Toolkit.exe dist/toolkit_user_other.exe
 
 echo "Done and ready to be uploaded! build version: $lastbuild version: $actualversion"
