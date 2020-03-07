@@ -71,7 +71,6 @@ namespace KH2ISO_PatchMaker
 {
     internal class PatchFile
     {
-        bool uselog = false;
         public const uint Signature = 0x5032484B;
         public const uint Signature_Fast = 0x4632484B;
         public const uint Signaturec = 0x4332484B;

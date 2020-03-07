@@ -9,57 +9,57 @@ using System.Security.Cryptography;
 
 namespace KH2FM_Toolkit
 {
-/* KH2 Patch File Format
- * 0    UInt32  Magic 0x5032484B "KH2P"
- * 4    UInt32  0x10000000 + Author Length
- * 8    UInt32  0x10000000 + Author Length + 0x10000000 + Changelog Length + 40000000 + Credits Length + Other Info Length
- * 12   UInt32  Version number of the patch
- * 13   string  Author
- * ?    UInt32  0x0C000000
- * ?    UInt32  0x10000000 + Changelog Length
- * ?    UInt32  0x10000000 + Changelog Length + 40000000 + Credits Length
- * ?    UInt32  Number of lines of the changelog
- *
- *      for each changelog lines:
- *          UInt32  "i" 0x04000000
- *          Increase i by the length of the next line
- *          string Changelog line
- *
- * ?    UInt32  Number of lines of the credits
- *
- *      for each changelog lines:
- *          UInt32  "i" 0x04000000
- *          Increase i by the length of the next line
- *          string Changelog line
- *
- * ?    string  Other infos
- * ?    UInt32  Number of files
- *      i = (Position of the stream of the patch + Number of files) *92
- *       for each non-relinking file:
- *          UInt32  hashed filename
- *          UInt32  i + Compressed size of the file
- *          UInt32  Compressed size of the file
- *          UInt32  Length of the uncompressed file
- *          UInt32  Parent Hash (KH2, OVL, etc...)
- *          UInt32  0x00000000
- *          UInt32  If file is compressed 0x01000000, otherwise 0x00000000
- *          UInt32  If file should be added if he's not in the game 0x01000000, otherwise 0x00000000
- *          UInt32(x15) 0x00000000(padding)
- *          byte*?  Raw file data
- *
- *      for each relinked file:
- *          UInt32  0x00000000
- *          UInt32  0x00000000
- *          UInt32  0x00000000
- *          UInt32 Hash of the file
- *          UInt32 Hash of the filename to relink to
- *          UInt32  0x00000000
- *
- *
- * Notes:
- * All files which needs to be compressed are already compressed into the patch file
- * Relinking a file will copy the content of the original file to the new file
- */
+    /* KH2 Patch File Format
+     * 0    UInt32  Magic 0x5032484B "KH2P"
+     * 4    UInt32  0x10000000 + Author Length
+     * 8    UInt32  0x10000000 + Author Length + 0x10000000 + Changelog Length + 40000000 + Credits Length + Other Info Length
+     * 12   UInt32  Version number of the patch
+     * 13   string  Author
+     * ?    UInt32  0x0C000000
+     * ?    UInt32  0x10000000 + Changelog Length
+     * ?    UInt32  0x10000000 + Changelog Length + 40000000 + Credits Length
+     * ?    UInt32  Number of lines of the changelog
+     *
+     *      for each changelog lines:
+     *          UInt32  "i" 0x04000000
+     *          Increase i by the length of the next line
+     *          string Changelog line
+     *
+     * ?    UInt32  Number of lines of the credits
+     *
+     *      for each changelog lines:
+     *          UInt32  "i" 0x04000000
+     *          Increase i by the length of the next line
+     *          string Changelog line
+     *
+     * ?    string  Other infos
+     * ?    UInt32  Number of files
+     *      i = (Position of the stream of the patch + Number of files) *92
+     *       for each non-relinking file:
+     *          UInt32  hashed filename
+     *          UInt32  i + Compressed size of the file
+     *          UInt32  Compressed size of the file
+     *          UInt32  Length of the uncompressed file
+     *          UInt32  Parent Hash (KH2, OVL, etc...)
+     *          UInt32  0x00000000
+     *          UInt32  If file is compressed 0x01000000, otherwise 0x00000000
+     *          UInt32  If file should be added if he's not in the game 0x01000000, otherwise 0x00000000
+     *          UInt32(x15) 0x00000000(padding)
+     *          byte*?  Raw file data
+     *
+     *      for each relinked file:
+     *          UInt32  0x00000000
+     *          UInt32  0x00000000
+     *          UInt32  0x00000000
+     *          UInt32 Hash of the file
+     *          UInt32 Hash of the filename to relink to
+     *          UInt32  0x00000000
+     *
+     *
+     * Notes:
+     * All files which needs to be compressed are already compressed into the patch file
+     * Relinking a file will copy the content of the original file to the new file
+     */
     public sealed class PatchManager : IDisposable
     {
         private readonly List<Stream> patchms = new List<Stream>();
@@ -113,13 +113,13 @@ namespace KH2FM_Toolkit
                 b += 1;
             }
             if (num3 == 1345472587u || num3 == 1362249803u)
-                {
-                    return true;
-                }
+            {
+                return true;
+            }
             else
-                {
-                    return false;
-                }
+            {
+                return false;
+            }
         }
         byte[] ODXY = { 0x58, 0x0c, 0xdd, 0x59, 0xf7, 0x24, 0x7f, 0x4f };
         byte[] OGYX = { 164, 28, 107, 129, 48, 13, 35, 91, 92, 58, 167, 222, 219, 244, 115, 90, 160, 194, 112, 209, 40, 72, 170, 114, 98, 181, 154, 124, 124, 32, 224, 199, 34, 32, 114, 204, 38, 198, 188, 128, 45, 120, 181, 149, 219, 55, 33, 116, 6, 17, 181, 125, 239, 137, 72, 215, 1, 167, 110, 208, 110, 238, 124, 204 };
@@ -207,24 +207,24 @@ namespace KH2FM_Toolkit
                     br.Seek(0, SeekOrigin.Begin);
                     if (br.ReadUInt32() != 0x5132484b)
                     {
-                      br.Seek(0, SeekOrigin.Begin);
-                      if (br.ReadUInt32() != 0x4632484b)
-                      {
-                        br.Close();
-                        ms.Close();
-                        throw new InvalidDataException("Invalid KH2Patch file!");
-                      }
-                      else
-                      {
-                        fast_patch=true;
-                        Console.WriteLine("Fast patch and dev flags detected! You might get some issues with those!");
-                      }
+                        br.Seek(0, SeekOrigin.Begin);
+                        if (br.ReadUInt32() != 0x4632484b)
+                        {
+                            br.Close();
+                            ms.Close();
+                            throw new InvalidDataException("Invalid KH2Patch file!");
+                        }
+                        else
+                        {
+                            fast_patch=true;
+                            Console.WriteLine("Fast patch and dev flags detected! You might get some issues with those!");
+                        }
                     }
                 }
                 patchms.Add(ms);
                 uint oaAuther = br.ReadUInt32(),
-                    obFileCount = br.ReadUInt32(),
-                    num = br.ReadUInt32();
+                     obFileCount = br.ReadUInt32(),
+                     num = br.ReadUInt32();
                 patchname = Path.GetFileName(patchname);
                 try
                 {
@@ -234,8 +234,8 @@ namespace KH2FM_Toolkit
                     Console.ResetColor();
                     br.Seek(oaAuther, SeekOrigin.Begin);
                     uint os1 = br.ReadUInt32(),
-                        os2 = br.ReadUInt32(),
-                        os3 = br.ReadUInt32();
+                         os2 = br.ReadUInt32(),
+                         os3 = br.ReadUInt32();
                     br.Seek(oaAuther + os1, SeekOrigin.Begin);
                     num = br.ReadUInt32();
                     if (num > 0)
@@ -278,7 +278,7 @@ namespace KH2FM_Toolkit
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("Error reading kh2patch header: {0}: {1}\r\nAttempting to continue files...",
-                        e.GetType(), e.Message);
+                            e.GetType(), e.Message);
                     Console.ResetColor();
                 }
                 Console.WriteLine("");
@@ -313,7 +313,7 @@ namespace KH2FM_Toolkit
                         Console.ForegroundColor = ConsoleColor.Red;
 #if DEBUG
                         Console.WriteLine("The file {0} has been included multiple times. Using the one from {1}.",
-                            HashList.HashList.NameFromHash(nPatch.Hash), patchname);
+                                HashList.HashList.NameFromHash(nPatch.Hash), patchname);
 #endif
                         patches[nPatch.Hash].Dispose();
                         patches.Remove(nPatch.Hash);
@@ -362,38 +362,38 @@ namespace KH2FM_Toolkit
 
                 try
                 {
-                  fs.Position = 0;
-                  var buffer = new byte[fs.Length];
-                  fs.Read(buffer, 0, (int)fs.Length);
-                  if (XorSig(buffer, OGYX))
-                  {
-                      GYXor(buffer);
-                      AddPatch(new MemoryStream(buffer), patchname);
-                  }
-                  else
-                  {
-                      throw new Exception();
-                  }
+                    fs.Position = 0;
+                    var buffer = new byte[fs.Length];
+                    fs.Read(buffer, 0, (int)fs.Length);
+                    if (XorSig(buffer, OGYX))
+                    {
+                        GYXor(buffer);
+                        AddPatch(new MemoryStream(buffer), patchname);
+                    }
+                    else
+                    {
+                        throw new Exception();
+                    }
 #if DEBUG
-                  Program.WriteWarning("Old format is used, Please use the new one!");
+                    Program.WriteWarning("Old format is used, Please use the new one!");
 #endif
                 }
                 catch (Exception)
                 {
-                      fs.Position = 0;
-                      var buffer = new byte[fs.Length];
-                      fs.Read(buffer, 0, (int)fs.Length);
-                      if (XorSig(buffer, ODXY))
-                      {
-                          XeeyXor(buffer);
-                          AddPatch(new MemoryStream(buffer), patchname);
-                      }
-                      else
-                      {
-                          throw;
-                      }
+                    fs.Position = 0;
+                    var buffer = new byte[fs.Length];
+                    fs.Read(buffer, 0, (int)fs.Length);
+                    if (XorSig(buffer, ODXY))
+                    {
+                        XeeyXor(buffer);
+                        AddPatch(new MemoryStream(buffer), patchname);
+                    }
+                    else
+                    {
+                        throw;
+                    }
 #if DBEUG
-                      Program.WriteWarning("Old format is used, Please use the new one!");
+                    Program.WriteWarning("Old format is used, Please use the new one!");
 #endif
                 }
                 finally
