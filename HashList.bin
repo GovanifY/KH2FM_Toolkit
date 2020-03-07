@@ -1,4 +1,4 @@
-#Version 4.00b GovanifY
+#Version 4.00c GovanifY
 00017E3E	= voice/us/event/lk11310si.vag
 0002568E	= anm/ex/h_ex500/EEX00001E.anb
 0002A690	= voice/fm/event/lk11003do.vag
@@ -95065,3 +95065,8 @@ D622D29A	= voice/fm/event/wi11901Cpe.vag
 3E47D75A	= voice/fm/event/wi11901Dpe.vag
 9C0F00B8	= voice/fm/event/wi11901Dpe_1.vag
 08AFB14C	= voice/fm/event/wi12013pe.vag
+F3C905D0	= dbg/bonuslevel.dbg
+32217090	= dbg/worldflag.dbg
+8AAAC6A2	= 99motion.dbg
+F9C2A841	= effect/mission0.bar
+AE7B8E72	= dbg/trampoline.tm2
