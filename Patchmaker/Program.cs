@@ -653,7 +653,7 @@ namespace KH2ISO_PatchMaker
         #endif
         #endif
                 Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                Console.Write("\nProgrammed by {0}\nhttp://www.govanify.com\nhttp://www.twitter.com/GovanifY\nSoftware under GPL 2 license, for more info, use the command -license",
+                Console.Write("\nProgrammed by {0}\nhttp://www.govanify.com\nhttp://www.twitter.com/GovanifY\n",
                     ISOTP.program.CompanyName);
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.Write(
